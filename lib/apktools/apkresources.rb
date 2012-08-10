@@ -1,153 +1,130 @@
-#
-# Author: Dave Smith
-#
-# Class to parse an APK's resources.arsc data and retrieve resource
-# data associated with a given R.id value
+# Copyright (C) 2012 Dave Smith
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy of this
+# software and associated documentation files (the "Software"), to deal in the Software
+# without restriction, including without limitation the rights to use, copy, modify,
+# merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit
+# persons to whom the Software is furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all copies
+# or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+# INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+# PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+# FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+# OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+# DEALINGS IN THE SOFTWARE.
 
-require 'rubygems'
 require 'zip/zip'
 
-DEBUG = true
-
-# Define Structures
-ChunkHeader = Struct.new(:type, :size, :chunk_size)
-StringPool = Struct.new(:header, :string_count, :style_count, :values)
-PackageHeader = Struct.new(:header, :id, :name, :type_strings, :key_strings)
-ResTypeSpec = Struct.new(:header, :id, :entry_count, :entries, :types)
-ResType = Struct.new(:header, :id, :config, :entry_count, :entries)
-ResTypeConfig = Struct.new(:imsi, :locale, :screen_type, :input, :screen_size, :version, :screen_config, :screen_size_dp)
-ResTypeEntry = Struct.new(:flags, :key, :data_type, :data)
-
-# Type Constants
-TYPE_ARRAY = "array"
-TYPE_ATTRIBUTE = "attr"
-TYPE_BOOLEAN = "bool"
-TYPE_COLOR = "color"
-TYPE_DIMENSION = "dimen"
-TYPE_DRAWABLE = "drawable"
-TYPE_FRACTION = "fraction"
-TYPE_INTEGER = "integer"
-TYPE_LAYOUT = "layout"
-TYPE_PLURALS = "plurals"
-TYPE_STRING = "string"
-TYPE_STYLE = "style"
-
-# Data Type Constants
-TYPE_INT_DEC = 0x10
-TYPE_INT_HEX = 0x11
-TYPE_BOOL = 0x12
-TYPE_INT_COLOR_RGB4 = 0x1F
-TYPE_INT_COLOR_ARGB4 = 0x1E
-TYPE_INT_COLOR_RGB8 = 0x1D
-TYPE_INT_COLOR_ARGB8 = 0x1C
-COMPLEX_UNIT_PX = 0x0
-COMPLEX_UNIT_DIP = 0x1
-COMPLEX_UNIT_SP = 0x2
-COMPLEX_UNIT_PT = 0x3
-COMPLEX_UNIT_IN = 0x4
-COMPLEX_UNIT_MM = 0x5
-
-# Configuration Constants
-ACONFIGURATION_ORIENTATION_ANY  = 0x0000
-ACONFIGURATION_ORIENTATION_PORT = 0x0001
-ACONFIGURATION_ORIENTATION_LAND = 0x0002
-ACONFIGURATION_ORIENTATION_SQUARE = 0x0003
-
-ACONFIGURATION_TOUCHSCREEN_ANY  = 0x0000
-ACONFIGURATION_TOUCHSCREEN_NOTOUCH  = 0x0001
-ACONFIGURATION_TOUCHSCREEN_STYLUS  = 0x0002
-ACONFIGURATION_TOUCHSCREEN_FINGER  = 0x0003
-
-ACONFIGURATION_DENSITY_DEFAULT = 0
-ACONFIGURATION_DENSITY_LOW = 120
-ACONFIGURATION_DENSITY_MEDIUM = 160
-ACONFIGURATION_DENSITY_TV = 213
-ACONFIGURATION_DENSITY_HIGH = 240
-ACONFIGURATION_DENSITY_XHIGH = 320
-ACONFIGURATION_DENSITY_XXHIGH = 480
-ACONFIGURATION_DENSITY_NONE = 0xffff
-
-ACONFIGURATION_KEYBOARD_ANY  = 0x0000
-ACONFIGURATION_KEYBOARD_NOKEYS  = 0x0001
-ACONFIGURATION_KEYBOARD_QWERTY  = 0x0002
-ACONFIGURATION_KEYBOARD_12KEY  = 0x0003
-
-ACONFIGURATION_NAVIGATION_ANY  = 0x0000
-ACONFIGURATION_NAVIGATION_NONAV  = 0x0001
-ACONFIGURATION_NAVIGATION_DPAD  = 0x0002
-ACONFIGURATION_NAVIGATION_TRACKBALL  = 0x0003
-ACONFIGURATION_NAVIGATION_WHEEL  = 0x0004
-
-ACONFIGURATION_KEYSHIDDEN_ANY = 0x0000
-ACONFIGURATION_KEYSHIDDEN_NO = 0x0001
-ACONFIGURATION_KEYSHIDDEN_YES = 0x0002
-ACONFIGURATION_KEYSHIDDEN_SOFT = 0x0003
-
-ACONFIGURATION_NAVHIDDEN_ANY = 0x0000
-ACONFIGURATION_NAVHIDDEN_NO = 0x0001
-ACONFIGURATION_NAVHIDDEN_YES = 0x0002
-
-ACONFIGURATION_SCREENSIZE_ANY  = 0x00
-ACONFIGURATION_SCREENSIZE_SMALL = 0x01
-ACONFIGURATION_SCREENSIZE_NORMAL = 0x02
-ACONFIGURATION_SCREENSIZE_LARGE = 0x03
-ACONFIGURATION_SCREENSIZE_XLARGE = 0x04
-
-ACONFIGURATION_SCREENLONG_ANY = 0x00
-ACONFIGURATION_SCREENLONG_NO = 0x1
-ACONFIGURATION_SCREENLONG_YES = 0x2
-
-ACONFIGURATION_UI_MODE_TYPE_ANY = 0x00
-ACONFIGURATION_UI_MODE_TYPE_NORMAL = 0x01
-ACONFIGURATION_UI_MODE_TYPE_DESK = 0x02
-ACONFIGURATION_UI_MODE_TYPE_CAR = 0x03
-ACONFIGURATION_UI_MODE_TYPE_TELEVISION = 0x04
-ACONFIGURATION_UI_MODE_TYPE_APPLIANCE = 0x05
-
-ACONFIGURATION_UI_MODE_NIGHT_ANY = 0x00
-ACONFIGURATION_UI_MODE_NIGHT_NO = 0x1
-ACONFIGURATION_UI_MODE_NIGHT_YES = 0x2
-
-ACONFIGURATION_SCREEN_WIDTH_DP_ANY = 0x0000
-
-ACONFIGURATION_SCREEN_HEIGHT_DP_ANY = 0x0000
-
-ACONFIGURATION_SMALLEST_SCREEN_WIDTH_DP_ANY = 0x0000
-
-# Spec Configuration Constants
-ACONFIGURATION_MCC = 0x0001
-ACONFIGURATION_MNC = 0x0002
-ACONFIGURATION_LOCALE = 0x0004
-ACONFIGURATION_TOUCHSCREEN = 0x0008
-ACONFIGURATION_KEYBOARD = 0x0010
-ACONFIGURATION_KEYBOARD_HIDDEN = 0x0020
-ACONFIGURATION_NAVIGATION = 0x0040
-ACONFIGURATION_ORIENTATION = 0x0080
-ACONFIGURATION_DENSITY = 0x0100
-ACONFIGURATION_SCREEN_SIZE = 0x0200
-ACONFIGURATION_VERSION = 0x0400
-ACONFIGURATION_SCREEN_LAYOUT = 0x0800
-ACONFIGURATION_UI_MODE = 0x1000
-ACONFIGURATION_SMALLEST_SCREEN_SIZE = 0x2000
-
-# Data Constants
-TYPE_BOOL_TRUE = 0xFFFFFFFF
-TYPE_BOOL_FALSE = 0x00000000
-
-CHUNKTYPE_TYPESPEC = 0x202
-CHUNKTYPE_TYPE = 0x201
-
-#Flag Constants
-FLAG_UTF8 = 0x100
-
-OFFSET_NO_ENTRY = 0xFFFFFFFF
-HEADER_START = 0
-
+##
+# Class to parse an APK's resources.arsc data and retrieve resource
+# data associated with a given R.id value
 class ApkResources
 
-	attr_accessor :stringpool_main, :package_header, :stringpool_typestrings, :stringpool_keystrings, :type_data
+	DEBUG = false # :nodoc:
+	
+	##
+	# Structure defining the type and size of each resource chunk
+	#
+	# ChunkHeader = Struct.new(:type, :size, :chunk_size)
+	ChunkHeader = Struct.new(:type, :size, :chunk_size)
+	
+	##
+	# Structure that houses a group of strings
+	#
+	# StringPool = Struct.new(:header, :string_count, :style_count, :values)
+	#
+	# * +header+ = ChunkHeader
+	# * +string_count+ = Number of normal strings in the pool
+	# * +style_count+ = Number of styled strings in the pool
+	# * +values+ = Array of the string values
+	StringPool = Struct.new(:header, :string_count, :style_count, :values)
+	
+	##
+	# Structure defining the data inside of the package chunk
+	#
+	# PackageHeader = Struct.new(:header, :id, :name, :type_strings, :key_strings)
+	#
+	# * +header+ = ChunkHeader
+	# * +id+ = Package id; usually 0x7F for application resources
+	# * +name+ = Package name (e.g. "com.example.application")
+	# * +type_strings+ = Array of the type string values present (e.g. "drawable")
+	# * +key_strings+ = Array of the key string values present (e.g. "ic_launcher")
+	PackageHeader = Struct.new(:header, :id, :name, :type_strings, :key_strings)
+	
+	##
+	# Structure defining the flags for a block of common resources
+	#
+	# ResTypeSpec = Struct.new(:header, :id, :entry_count, :entries, :types)
+	#
+	# * +header+ = ChunkHeader
+	# * +id+ = String value of the referenced type (e.g. "drawable")
+	# * +entry_count+ = Number of type entries in this chunk
+	# * +entries+ = Array of config flags for each type entry
+	# * +types+ = The ResType associated with this spec
+	ResTypeSpec = Struct.new(:header, :id, :entry_count, :entries, :types)
+	
+	##
+	# Structure that houses all the resources for a given type
+	#
+	# ResType = Struct.new(:header, :id, :config, :entry_count, :entries)
+	#
+	# * +header+ = ChunkHeader
+	# * +id+ = String value of the referenced type (e.g. "drawable")
+	# * +config+ = ResTypeConfig defining the configuration for this type
+	# * +entry_count+ = Number of entries in this chunk
+	# * +entries+ = Array of Hashes of [ResTypeConfig, ResTypeEntry] in this chunk
+	ResType = Struct.new(:header, :id, :config, :entry_count, :entries)
+	
+	##
+	# Structure that houses the configuration flags for a given resource.
+	# 
+	# ResTypeConfig = Struct.new(:imsi, :locale, :screen_type, :input, :screen_size, :version, :screen_config, :screen_size_dp)
+	#
+	# * +imsi+ = Flags marking country code and network code
+	# * +locale+ = Flags marking locale requirements (language)
+	# * +screen_type+ = Flags/values for screen density
+	# * +input+ = Flags marking input types and visibility status
+	# * +screen_size+ = Flags marking screen size and length
+	# * +version+ = Minimum API version
+	# * +screen_config+ = Flags marking screen configuration (like orientation)
+	# * +screen_size_dp+ = Flags marking smallest width constraints
+	#
+	# A default configuration is defined as ResTypeConfig.new(0, 0, 0, 0, 0, 0, 0, 0)
+	ResTypeConfig = Struct.new(:imsi, :locale, :screen_type, :input, :screen_size, :version, :screen_config, :screen_size_dp)
 
-	# Initialize resources data from file
+	##
+	# Structure that houses the data for a given resource entry
+	#
+	# ResTypeEntry = Struct.new(:flags, :key, :data_type, :data)
+	#
+	# * +flags+ = Flags marking if the resource is complex or public
+	# * +key+ = Key string for the resource (e.g. "ic_launcher" of R.drawable.ic_launcher")
+	# * +data_type+ = Type identifier.  The meaning of this value varies with the type of resource
+	# * +data+ = Resource value (e.g. "res/drawable/ic_launcher" for R.drawable.ic_launcher")
+	#
+	# A single resource key can have multiple entries depending on configuration, so these structs
+	# are often returned in groups, keyed by a ResTypeConfig
+	ResTypeEntry = Struct.new(:flags, :key, :data_type, :data)
+
+	# PackageHeader containing information about all the type and key strings in the package
+	attr_reader :package_header
+	# StringPool containing all value strings in the package
+	attr_reader :stringpool_main
+	# StringPool containing all type strings in the package
+	attr_reader :stringpool_typestrings
+	# StringPool containing all key strings in the package
+	attr_reader :stringpool_keystrings
+	# Array of the ResTypeSpec chunks in the package
+	attr_reader :type_data
+
+	##
+	# Create a new ApkResources instance from the specified +apk_file+
+	#
+	# This opens and parses the contents of the APK's resources.arsc file.
+	
 	def initialize(apk_file)
 		data = nil		
 		# Get resources.arsc from the APK file
@@ -310,21 +287,28 @@ class ApkResources
 		
 	end #initalize
 	
+	##
 	# Return array of all string values in the file
+	
 	def get_all_strings
 		return @stringpool_main.values
 	end
 	
+	##
 	# Return array of all the type values in the file
+	
 	def get_all_types
 		return @stringpool_typestrings.values
 	end
 	
+	##
 	# Return array of all the key values in the file
+	
 	def get_all_keys
 		return @stringpool_keystrings.values
 	end
 
+	##
 	# Obtain the key value for a given resource id
 	#
 	# res_id: ID value of a resource as a FixNum or String representation (i.e. 0x7F060001)
@@ -332,6 +316,7 @@ class ApkResources
 	#
 	# If xml_format is true, return value will be @<type>/<key>
 	# If xml_format is false or missing, return value will be R.<type>.<key>
+	
 	def get_resource_key(res_id, xml_format=false)
 		if res_id.is_a? String
 			res_id = res_id.hex
@@ -362,11 +347,13 @@ class ApkResources
 		end
 	end
 
+	##
 	# Obtain the default value for a given resource id
 	#
 	# res_id: ID values of a resources as a FixNum or String representation (i.e. 0x7F060001)
 	#
 	# Returns: The default ResTypeEntry to the given id, or nil if no default exists
+	
 	def get_default_resource_value(res_id)
 		entries = get_resource_value(res_id)
 		default = ResTypeConfig.new(0, 0, 0, 0, 0, 0, 0, 0)
@@ -374,14 +361,14 @@ class ApkResources
 		return entries[default]
 	end
 
+	##
 	# Obtain the value(s) for a given resource id.
 	# A default resource is one defined in an unqualified directory.
 	#
 	# res_id: ID value of a resource as a FixNum or String representation (i.e. 0x7F060001)
 	#
 	# Returns: Hash of all entries matching this id, keyed by their matching ResTypeConfig
-	#
-	# TODO: Implement a return scheme for complex resources (arrays, styles, plurals, etc.)
+	
 	def get_resource_value(res_id)
 		if res_id.is_a? String
 			res_id = res_id.hex
@@ -409,6 +396,49 @@ class ApkResources
 	end
 
 	private # Private Helper Methods
+
+	# Type Constants
+	TYPE_ARRAY = "array" # :nodoc:
+	TYPE_ATTRIBUTE = "attr" # :nodoc:
+	TYPE_BOOLEAN = "bool" # :nodoc:
+	TYPE_COLOR = "color" # :nodoc:
+	TYPE_DIMENSION = "dimen" # :nodoc:
+	TYPE_DRAWABLE = "drawable" # :nodoc:
+	TYPE_FRACTION = "fraction" # :nodoc:
+	TYPE_INTEGER = "integer" # :nodoc:
+	TYPE_LAYOUT = "layout" # :nodoc:
+	TYPE_PLURALS = "plurals" # :nodoc:
+	TYPE_STRING = "string" # :nodoc:
+	TYPE_STYLE = "style" # :nodoc:
+	
+	# Data Type Constants
+	TYPE_INT_DEC = 0x10 # :nodoc:
+	TYPE_INT_HEX = 0x11 # :nodoc:
+	TYPE_BOOL = 0x12 # :nodoc:
+	TYPE_INT_COLOR_RGB4 = 0x1F # :nodoc:
+	TYPE_INT_COLOR_ARGB4 = 0x1E # :nodoc:
+	TYPE_INT_COLOR_RGB8 = 0x1D # :nodoc:
+	TYPE_INT_COLOR_ARGB8 = 0x1C # :nodoc:
+	COMPLEX_UNIT_PX = 0x0 # :nodoc:
+	COMPLEX_UNIT_DIP = 0x1 # :nodoc:
+	COMPLEX_UNIT_SP = 0x2 # :nodoc:
+	COMPLEX_UNIT_PT = 0x3 # :nodoc:
+	COMPLEX_UNIT_IN = 0x4 # :nodoc:
+	COMPLEX_UNIT_MM = 0x5 # :nodoc:
+	
+	# Data Constants
+	TYPE_BOOL_TRUE = 0xFFFFFFFF # :nodoc:
+	TYPE_BOOL_FALSE = 0x00000000 # :nodoc:
+	
+	# Header Constants
+	CHUNKTYPE_TYPESPEC = 0x202 # :nodoc:
+	CHUNKTYPE_TYPE = 0x201 # :nodoc:
+	
+	#Flag Constants
+	FLAG_UTF8 = 0x100 # :nodoc:
+	
+	OFFSET_NO_ENTRY = 0xFFFFFFFF # :nodoc:
+	HEADER_START = 0 # :nodoc:
 
 	# Read a 32-bit word from a specific location in the data
 	def read_word(data, offset)
@@ -444,7 +474,6 @@ class ApkResources
 	end
 	
 	# Parse out a StringPool chunk
-	#TODO: Add styled strings
 	def parse_stringpool(data, offset)
 		pool_header = ChunkHeader.new( read_short(data, offset),
 				read_short(data, offset+2),

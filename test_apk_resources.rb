@@ -3,9 +3,9 @@
 # Script to test APKResources development
 #
 
-require './apkresources.rb'
 require 'rubygems'
 require 'zip/zip'
+require 'apktools/apkresources'
 
 # Begin Script
 if ARGV.length != 1
