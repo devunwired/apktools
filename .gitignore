@@ -1,0 +1,5 @@
+# OS X Noise
+.DS_Store
+
+#Build output
+*.gem
