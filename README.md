@@ -166,6 +166,13 @@ end
 
 **For more information on the capabilities of the library, take a look at the RDoc posted in the `doc/` directory of the repository.**
 
+Utilities
+=========
+
+This gem also currently contains the following binary utility scripts:
+
+* `get_app_version`: Read the versionName and versionCode attributes out of AndroidManifest.xml; resolving any resource references if necessary.
+
 Planned Work
 ============
 The following items are known features that this library still expects to implement in the future
