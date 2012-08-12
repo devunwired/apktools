@@ -1,0 +1,602 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <meta content="text/html; charset=UTF-8" http-equiv="Content-Type" />
+
+  <title>Class: ApkXml</title>
+
+  <link rel="stylesheet" href="./rdoc.css" type="text/css" media="screen" />
+
+  <script src="./js/jquery.js" type="text/javascript" charset="utf-8"></script>
+  <script src="./js/thickbox-compressed.js" type="text/javascript" charset="utf-8"></script>
+  <script src="./js/quicksearch.js" type="text/javascript" charset="utf-8"></script>
+  <script src="./js/darkfish.js" type="text/javascript" charset="utf-8"></script>
+
+</head>
+<body id="top" class="class">
+
+  <div id="metadata">
+    <div id="home-metadata">
+      <div id="home-section" class="section">
+        <h3 class="section-header">
+          <a href="./index.html">Home</a>
+          <a href="./index.html#classes">Classes</a>
+          <a href="./index.html#methods">Methods</a>
+        </h3>
+      </div>
+    </div>
+
+    <div id="file-metadata">
+      <div id="file-list-section" class="section">
+        <h3 class="section-header">In Files</h3>
+        <div class="section-body">
+          <ul>
+          
+            <li><a href="./lib/apktools/apkxml_rb.html?TB_iframe=true&amp;height=550&amp;width=785"
+              class="thickbox" title="lib/apktools/apkxml.rb">lib/apktools/apkxml.rb</a></li>
+          
+          </ul>
+        </div>
+      </div>
+
+      
+    </div>
+
+    <div id="class-metadata">
+      
+      <!-- Parent Class -->
+      <div id="parent-class-section" class="section">
+        <h3 class="section-header">Parent</h3>
+        
+        <p class="link">Object</p>
+        
+      </div>
+      
+
+      
+
+      
+
+      
+      <!-- Method Quickref -->
+      <div id="method-list-section" class="section">
+        <h3 class="section-header">Methods</h3>
+        <ul class="link-list">
+          
+          <li><a href="#method-c-new">::new</a></li>
+          
+          <li><a href="#method-i-parse_xml">#parse_xml</a></li>
+          
+        </ul>
+      </div>
+      
+
+      
+    </div>
+
+    <div id="project-metadata">
+      
+      
+
+      <div id="classindex-section" class="section project-section">
+        <h3 class="section-header">Class/Module Index
+          <span class="search-toggle"><img src="./images/find.png"
+            height="16" width="16" alt="[+]"
+            title="show/hide quicksearch" /></span></h3>
+        <form action="#" method="get" accept-charset="utf-8" class="initially-hidden">
+        <fieldset>
+          <legend>Quicksearch</legend>
+          <input type="text" name="quicksearch" value=""
+            class="quicksearch-field" />
+        </fieldset>
+        </form>
+
+        <ul class="link-list">
+        
+          <li><a href="./ApkResources.html">ApkResources</a></li>
+        
+          <li><a href="./ApkXml.html">ApkXml</a></li>
+        
+          <li><a href="./ResConfiguration.html">ResConfiguration</a></li>
+        
+        </ul>
+        <div id="no-class-search-results" style="display: none;">No matching classes.</div>
+      </div>
+
+      
+    </div>
+  </div>
+
+  <div id="documentation">
+    <h1 class="class">ApkXml</h1>
+
+    <div id="description" class="description">
+      
+<p>Class to parse an APK’s binary XML format back into textual XML</p>
+
+    </div><!-- description -->
+
+    
+    
+    
+    <div id="5Buntitled-5D" class="documentation-section">
+      
+
+      
+
+      
+      <!-- Constants -->
+      <div id="constants-list" class="section">
+        <h3 class="section-header">Constants</h3>
+        <dl>
+        
+          <dt><a name="ChunkHeader">ChunkHeader</a></dt>
+          
+          <dd class="description"><p>Structure defining the type and size of each resource chunk</p>
+
+<p><a href="ApkXml.html#ChunkHeader">ChunkHeader</a> = Struct.new(:type,
+:size, :chunk_size)</p></dd>
+          
+        
+          <dt><a name="ResTypeEntry">ResTypeEntry</a></dt>
+          
+          <dd class="description"><p>Structure that houses the data for a given resource entry</p>
+
+<p><a href="ApkXml.html#ResTypeEntry">ResTypeEntry</a> = Struct.new(:flags,
+:key, :data_type, :data)</p>
+<ul><li>
+<p><tt>flags</tt> = Flags marking if the resource is complex or public</p>
+</li><li>
+<p><tt>key</tt> = Key string for the resource (e.g. "ic_launcher" of
+R.drawable.ic_launcher")</p>
+</li><li>
+<p><tt>data_type</tt> = Type identifier.  The meaning of this value varies
+with the type of resource</p>
+</li><li>
+<p><tt>data</tt> = Resource value (e.g. "res/drawable/ic_launcher" for
+R.drawable.ic_launcher")</p>
+</li></ul>
+
+<p>A single resource key can have multiple entries depending on configuration,
+so these structs are often returned in groups, keyed by a ResTypeConfig</p></dd>
+          
+        
+          <dt><a name="StringPool">StringPool</a></dt>
+          
+          <dd class="description"><p>Structure that houses a group of strings</p>
+
+<p><a href="ApkXml.html#StringPool">StringPool</a> = Struct.new(:header,
+:string_count, :style_count, :values)</p>
+<ul><li>
+<p><tt>header</tt> = <a href="ApkXml.html#ChunkHeader">ChunkHeader</a></p>
+</li><li>
+<p><tt>string_count</tt> = Number of normal strings in the pool</p>
+</li><li>
+<p><tt>style_count</tt> = Number of styled strings in the pool</p>
+</li><li>
+<p><tt>values</tt> = Array of the string values</p>
+</li></ul></dd>
+          
+        
+          <dt><a name="XmlAttribute">XmlAttribute</a></dt>
+          
+          <dd class="description"><p>Structure defining an XML element’s attribute</p>
+
+<p><a href="ApkXml.html#XmlAttribute">XmlAttribute</a> =
+Struct.new(:namespace, :name, :raw, :value)</p>
+<ul><li>
+<p><tt>namespace</tt> = Namespace prefix of the attribute</p>
+</li><li>
+<p><tt>name</tt> = Name of the attribute</p>
+</li><li>
+<p><tt>raw</tt> = Original raw string value of the attribute, if one exists</p>
+</li><li>
+<p><tt>value</tt> = <a href="ApkXml.html#ResTypeEntry">ResTypeEntry</a> for
+the typed value of the attribute, if one exists</p>
+</li></ul></dd>
+          
+        
+          <dt><a name="XmlElement">XmlElement</a></dt>
+          
+          <dd class="description"><p>Structure defining an XML element</p>
+
+<p><a href="ApkXml.html#XmlElement">XmlElement</a> = Struct.new(:header,
+:namespace, :name, :id_idx, :class_idx, :style_idx, :attributes, :is_root)</p>
+<ul><li>
+<p><tt>header</tt> = <a href="ApkXml.html#XmlTreeHeader">XmlTreeHeader</a></p>
+</li><li>
+<p><tt>namespace</tt> = Namespace prefix of the element</p>
+</li><li>
+<p><tt>name</tt> = Name of the element</p>
+</li><li>
+<p><tt>id_idx</tt> = Index of the attribute that represents the "id" in this
+element, if any</p>
+</li><li>
+<p><tt>class_idx</tt> = Index of the attribute that represents the "class" in
+this element, if any</p>
+</li><li>
+<p><tt>style_idx</tt> = Index of the attribute that represents the "style" in
+this element, if any</p>
+</li><li>
+<p><tt>attributes</tt> = Array of <a
+href="ApkXml.html#XmlAttribute">XmlAttribute</a> elements</p>
+</li><li>
+<p><tt>is_root</tt> = Marks if this is the root element</p>
+</li></ul></dd>
+          
+        
+          <dt><a name="XmlResourceMap">XmlResourceMap</a></dt>
+          
+          <dd class="description"><p>Structure to house mappings of resource ids to strings</p>
+
+<p><a href="ApkXml.html#XmlResourceMap">XmlResourceMap</a> =
+Struct.new(:header, :ids, :strings)</p>
+<ul><li>
+<p><tt>header</tt> = <a href="ApkXml.html#ChunkHeader">ChunkHeader</a></p>
+</li><li>
+<p><tt>ids</tt> = Array of resource ids</p>
+</li><li>
+<p><tt>strings</tt> = Matching Array of resource strings</p>
+</li></ul></dd>
+          
+        
+          <dt><a name="XmlTreeHeader">XmlTreeHeader</a></dt>
+          
+          <dd class="description"><p>Structure defining header of an XML node</p>
+
+<p><a href="ApkXml.html#XmlTreeHeader">XmlTreeHeader</a> = Struct.new(:header,
+:line_num, :comment)</p>
+<ul><li>
+<p><tt>header</tt> = <a href="ApkXml.html#ChunkHeader">ChunkHeader</a></p>
+</li><li>
+<p><tt>line_num</tt> = Line number in original file</p>
+</li><li>
+<p><tt>comment</tt> = Optional comment</p>
+</li></ul></dd>
+          
+        
+        </dl>
+      </div>
+      
+
+      
+      <!-- Attributes -->
+      <div id="attribute-method-details" class="method-section section">
+        <h3 class="section-header">Attributes</h3>
+
+        
+        <div id="apk_resources-attribute-method" class="method-detail">
+          <a name="apk_resources"></a>
+          
+          <div class="method-heading attribute-method-heading">
+            <span class="method-name">apk_resources</span><span
+              class="attribute-access-type">[R]</span>
+          </div>
+
+          <div class="method-description">
+          
+          <p><a href="ApkResources.html">ApkResources</a> instance used to resolve
+resources in this APK</p>
+          
+          </div>
+        </div>
+        
+        <div id="current_apk-attribute-method" class="method-detail">
+          <a name="current_apk"></a>
+          
+          <div class="method-heading attribute-method-heading">
+            <span class="method-name">current_apk</span><span
+              class="attribute-access-type">[R]</span>
+          </div>
+
+          <div class="method-description">
+          
+          <p>APK file where parser will search for XML</p>
+          
+          </div>
+        </div>
+        
+      </div><!-- attribute-method-details -->
+      
+
+      <!-- Methods -->
+      
+      <div id="public-class-method-details" class="method-section section">
+        <h3 class="section-header">Public Class Methods</h3>
+
+      
+        <div id="new-method" class="method-detail ">
+          <a name="method-c-new"></a>
+
+          
+          <div class="method-heading">
+            <span class="method-name">new</span><span
+              class="method-args">(apk_file)</span>
+            <span class="method-click-advice">click to toggle source</span>
+          </div>
+          
+
+          <div class="method-description">
+            
+            <p>Create a new <a href="ApkXml.html">ApkXml</a> instance from the specified
+<tt>apk_file</tt></p>
+
+<p>This opens and parses the contents of the APK’s resources.arsc file.</p>
+            
+
+            
+            <div class="method-source-code" id="new-source">
+<pre>
+<span class="ruby-comment"># File lib/apktools/apkxml.rb, line 114</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">initialize</span>(<span class="ruby-identifier">apk_file</span>)
+        <span class="ruby-ivar">@current_apk</span> = <span class="ruby-identifier">apk_file</span>
+        <span class="ruby-ivar">@apk_resources</span> = <span class="ruby-constant">ApkResources</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">apk_file</span>)
+<span class="ruby-keyword">end</span></pre>
+            </div><!-- new-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- new-method -->
+
+      
+      </div><!-- public-class-method-details -->
+    
+      <div id="public-instance-method-details" class="method-section section">
+        <h3 class="section-header">Public Instance Methods</h3>
+
+      
+        <div id="parse_xml-method" class="method-detail ">
+          <a name="method-i-parse_xml"></a>
+
+          
+          <div class="method-heading">
+            <span class="method-name">parse_xml</span><span
+              class="method-args">(xml_file, pretty = false, resolve_resources = false)</span>
+            <span class="method-click-advice">click to toggle source</span>
+          </div>
+          
+
+          <div class="method-description">
+            
+            <p>Read the requested XML file from inside the APK and parse out into readable
+textual XML.  Returns a string of the parsed XML.</p>
+
+<p>xml_file: ID value of a resource as a FixNum or String representation (i.e.
+0x7F060001) pretty: Optionally format the XML output as human readable
+resolve_resources: Optionally, where possible, resolve resource references
+to their default value</p>
+
+<p>This opens and parses the contents of the APK’s resources.arsc file.</p>
+            
+
+            
+            <div class="method-source-code" id="parse_xml-source">
+<pre>
+<span class="ruby-comment"># File lib/apktools/apkxml.rb, line 128</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">parse_xml</span>(<span class="ruby-identifier">xml_file</span>, <span class="ruby-identifier">pretty</span> = <span class="ruby-keyword">false</span>, <span class="ruby-identifier">resolve_resources</span> = <span class="ruby-keyword">false</span>)
+        <span class="ruby-identifier">xml_output</span> = <span class="ruby-string">&quot;&quot;</span>
+        <span class="ruby-identifier">indent</span> = <span class="ruby-value">0</span>
+        <span class="ruby-identifier">data</span> = <span class="ruby-keyword">nil</span>            
+        
+        <span class="ruby-comment"># Get the XML from the APK file</span>
+        <span class="ruby-constant">Zip</span><span class="ruby-operator">::</span><span class="ruby-constant">ZipFile</span>.<span class="ruby-identifier">foreach</span>(<span class="ruby-ivar">@current_apk</span>) <span class="ruby-keyword">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">f</span><span class="ruby-operator">|</span>
+          <span class="ruby-keyword">if</span> <span class="ruby-identifier">f</span>.<span class="ruby-identifier">name</span>.<span class="ruby-identifier">match</span>(<span class="ruby-identifier">xml_file</span>)
+                <span class="ruby-identifier">data</span> = <span class="ruby-identifier">f</span>.<span class="ruby-identifier">get_input_stream</span>.<span class="ruby-identifier">read</span>
+          <span class="ruby-keyword">end</span>
+        <span class="ruby-keyword">end</span>
+        
+        <span class="ruby-comment"># Parse the Header Chunk              </span>
+        <span class="ruby-identifier">header</span> = <span class="ruby-constant">ChunkHeader</span>.<span class="ruby-identifier">new</span>( <span class="ruby-identifier">read_short</span>(<span class="ruby-identifier">data</span>, <span class="ruby-constant">HEADER_START</span>),
+                        <span class="ruby-identifier">read_short</span>(<span class="ruby-identifier">data</span>, <span class="ruby-constant">HEADER_START</span><span class="ruby-operator">+</span><span class="ruby-value">2</span>),
+                        <span class="ruby-identifier">read_word</span>(<span class="ruby-identifier">data</span>, <span class="ruby-constant">HEADER_START</span><span class="ruby-operator">+</span><span class="ruby-value">4</span>) )
+        
+        <span class="ruby-comment"># Parse the StringPool Chunk</span>
+        <span class="ruby-identifier">startoffset_pool</span> = <span class="ruby-constant">HEADER_START</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">header</span>.<span class="ruby-identifier">size</span>
+        <span class="ruby-identifier">puts</span> <span class="ruby-string">&quot;Parse Main StringPool Chunk&quot;</span> <span class="ruby-keyword">if</span> <span class="ruby-constant">DEBUG</span>
+        <span class="ruby-identifier">stringpool_main</span> = <span class="ruby-identifier">parse_stringpool</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">startoffset_pool</span>)
+        <span class="ruby-identifier">puts</span> <span class="ruby-node">&quot;#{stringpool_main.values.length} strings found&quot;</span> <span class="ruby-keyword">if</span> <span class="ruby-constant">DEBUG</span>
+        
+        <span class="ruby-comment"># Parse the remainder of the file chunks based on type</span>
+        <span class="ruby-identifier">namespaces</span> = <span class="ruby-constant">Hash</span>.<span class="ruby-identifier">new</span>()
+        <span class="ruby-identifier">current</span> = <span class="ruby-identifier">startoffset_pool</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">stringpool_main</span>.<span class="ruby-identifier">header</span>.<span class="ruby-identifier">chunk_size</span>
+        <span class="ruby-identifier">puts</span> <span class="ruby-string">&quot;Parse Remaining Chunks&quot;</span> <span class="ruby-keyword">if</span> <span class="ruby-constant">DEBUG</span>
+        <span class="ruby-keyword">while</span> <span class="ruby-identifier">current</span> <span class="ruby-operator">&lt;</span> <span class="ruby-identifier">data</span>.<span class="ruby-identifier">length</span>
+                <span class="ruby-comment">## Parse Header</span>
+                <span class="ruby-identifier">header</span> = <span class="ruby-constant">ChunkHeader</span>.<span class="ruby-identifier">new</span>( <span class="ruby-identifier">read_short</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">current</span>),
+                                <span class="ruby-identifier">read_short</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">current</span><span class="ruby-operator">+</span><span class="ruby-value">2</span>),
+                                <span class="ruby-identifier">read_word</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">current</span><span class="ruby-operator">+</span><span class="ruby-value">4</span>) )
+                <span class="ruby-comment">## Check Type</span>
+                <span class="ruby-keyword">if</span> <span class="ruby-identifier">header</span>.<span class="ruby-identifier">type</span> <span class="ruby-operator">==</span> <span class="ruby-constant">TYPE_XML_RESOURCEMAP</span>
+                        <span class="ruby-comment">## Maps resource ids to strings in the pool</span>
+                        <span class="ruby-identifier">map_ids</span> = <span class="ruby-constant">Array</span>.<span class="ruby-identifier">new</span>()
+                        <span class="ruby-identifier">map_strings</span> = <span class="ruby-constant">Array</span>.<span class="ruby-identifier">new</span>()
+                                                        
+                        <span class="ruby-identifier">index_offset</span> = <span class="ruby-identifier">current</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">header</span>.<span class="ruby-identifier">size</span>
+                        <span class="ruby-identifier">i</span> = <span class="ruby-value">0</span>
+                        <span class="ruby-keyword">while</span> <span class="ruby-identifier">index_offset</span> <span class="ruby-operator">&lt;</span> (<span class="ruby-identifier">current</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">header</span>.<span class="ruby-identifier">chunk_size</span>)
+                                <span class="ruby-identifier">map_ids</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">read_word</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">index_offset</span>)
+                                <span class="ruby-identifier">map_strings</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">stringpool_main</span>.<span class="ruby-identifier">values</span>[<span class="ruby-identifier">i</span>]
+                                
+                                <span class="ruby-identifier">i</span> <span class="ruby-operator">+=</span> <span class="ruby-value">1</span>
+                                <span class="ruby-identifier">index_offset</span> = <span class="ruby-identifier">i</span> * <span class="ruby-value">4</span> <span class="ruby-operator">+</span> (<span class="ruby-identifier">current</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">header</span>.<span class="ruby-identifier">size</span>)
+                        <span class="ruby-keyword">end</span>
+                        
+                        <span class="ruby-identifier">current</span> <span class="ruby-operator">+=</span> <span class="ruby-identifier">header</span>.<span class="ruby-identifier">chunk_size</span>
+                <span class="ruby-keyword">elsif</span> <span class="ruby-identifier">header</span>.<span class="ruby-identifier">type</span> <span class="ruby-operator">==</span> <span class="ruby-constant">TYPE_XML_STARTNAMESPACE</span>
+                        <span class="ruby-identifier">tree_header</span> = <span class="ruby-identifier">parse_tree_header</span>(<span class="ruby-identifier">header</span>, <span class="ruby-identifier">data</span>, <span class="ruby-identifier">current</span>)
+                        <span class="ruby-identifier">body_start</span> = <span class="ruby-identifier">current</span><span class="ruby-operator">+</span><span class="ruby-identifier">header</span>.<span class="ruby-identifier">size</span>
+                        <span class="ruby-identifier">prefix</span> = <span class="ruby-identifier">stringpool_main</span>.<span class="ruby-identifier">values</span>[<span class="ruby-identifier">read_word</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">body_start</span>)]
+                        <span class="ruby-identifier">uri</span> = <span class="ruby-identifier">stringpool_main</span>.<span class="ruby-identifier">values</span>[<span class="ruby-identifier">read_word</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">body_start</span><span class="ruby-operator">+</span><span class="ruby-value">4</span>)]
+                        <span class="ruby-identifier">namespaces</span>[<span class="ruby-identifier">uri</span>] = <span class="ruby-identifier">prefix</span>
+                        <span class="ruby-identifier">puts</span> <span class="ruby-node">&quot;NAMESPACE_START: xmlns:#{prefix} = '#{uri}'&quot;</span> <span class="ruby-keyword">if</span> <span class="ruby-constant">DEBUG</span>
+                        <span class="ruby-identifier">current</span> <span class="ruby-operator">+=</span> <span class="ruby-identifier">header</span>.<span class="ruby-identifier">chunk_size</span>
+                <span class="ruby-keyword">elsif</span> <span class="ruby-identifier">header</span>.<span class="ruby-identifier">type</span> <span class="ruby-operator">==</span> <span class="ruby-constant">TYPE_XML_ENDNAMESPACE</span>
+                        <span class="ruby-identifier">tree_header</span> = <span class="ruby-identifier">parse_tree_header</span>(<span class="ruby-identifier">header</span>, <span class="ruby-identifier">data</span>, <span class="ruby-identifier">current</span>)
+                        <span class="ruby-identifier">body_start</span> = <span class="ruby-identifier">current</span><span class="ruby-operator">+</span><span class="ruby-identifier">header</span>.<span class="ruby-identifier">size</span>
+                        <span class="ruby-identifier">prefix</span> = <span class="ruby-identifier">stringpool_main</span>.<span class="ruby-identifier">values</span>[<span class="ruby-identifier">read_word</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">body_start</span>)]
+                        <span class="ruby-identifier">uri</span> = <span class="ruby-identifier">stringpool_main</span>.<span class="ruby-identifier">values</span>[<span class="ruby-identifier">read_word</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">body_start</span><span class="ruby-operator">+</span><span class="ruby-value">4</span>)]
+                        <span class="ruby-identifier">puts</span> <span class="ruby-node">&quot;NAMESPACE_END: xmlns:#{prefix} = '#{uri}'&quot;</span> <span class="ruby-keyword">if</span> <span class="ruby-constant">DEBUG</span>
+                        <span class="ruby-identifier">current</span> <span class="ruby-operator">+=</span> <span class="ruby-identifier">header</span>.<span class="ruby-identifier">chunk_size</span>
+                <span class="ruby-keyword">elsif</span> <span class="ruby-identifier">header</span>.<span class="ruby-identifier">type</span> <span class="ruby-operator">==</span> <span class="ruby-constant">TYPE_XML_STARTELEMENT</span>
+                        <span class="ruby-identifier">tree_header</span> = <span class="ruby-identifier">parse_tree_header</span>(<span class="ruby-identifier">header</span>, <span class="ruby-identifier">data</span>, <span class="ruby-identifier">current</span>)
+                        <span class="ruby-identifier">body_start</span> = <span class="ruby-identifier">current</span><span class="ruby-operator">+</span><span class="ruby-identifier">header</span>.<span class="ruby-identifier">size</span>
+                        <span class="ruby-identifier">namespace</span> = <span class="ruby-keyword">nil</span>
+                        <span class="ruby-keyword">if</span> <span class="ruby-identifier">read_word</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">body_start</span>) <span class="ruby-operator">!=</span> <span class="ruby-constant">OFFSET_NO_ENTRY</span>
+                                <span class="ruby-identifier">namespace</span> = <span class="ruby-identifier">stringpool_main</span>.<span class="ruby-identifier">values</span>[<span class="ruby-identifier">read_word</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">body_start</span>)]
+                        <span class="ruby-keyword">end</span>
+                        <span class="ruby-identifier">name</span> = <span class="ruby-identifier">stringpool_main</span>.<span class="ruby-identifier">values</span>[<span class="ruby-identifier">read_word</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">body_start</span><span class="ruby-operator">+</span><span class="ruby-value">4</span>)]
+                        
+                        <span class="ruby-identifier">attribute_offset</span> = <span class="ruby-identifier">read_short</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">body_start</span><span class="ruby-operator">+</span><span class="ruby-value">8</span>)
+                        <span class="ruby-identifier">attribute_size</span> = <span class="ruby-identifier">read_short</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">body_start</span><span class="ruby-operator">+</span><span class="ruby-value">10</span>)
+                        <span class="ruby-identifier">attribute_count</span> = <span class="ruby-identifier">read_short</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">body_start</span><span class="ruby-operator">+</span><span class="ruby-value">12</span>)
+                        <span class="ruby-identifier">id_idx</span> = <span class="ruby-identifier">read_short</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">body_start</span><span class="ruby-operator">+</span><span class="ruby-value">14</span>)
+                        <span class="ruby-identifier">class_idx</span> = <span class="ruby-identifier">read_short</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">body_start</span><span class="ruby-operator">+</span><span class="ruby-value">16</span>)
+                        <span class="ruby-identifier">style_idx</span> = <span class="ruby-identifier">read_short</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">body_start</span><span class="ruby-operator">+</span><span class="ruby-value">18</span>)
+                        
+                        <span class="ruby-identifier">attributes</span> = <span class="ruby-constant">Array</span>.<span class="ruby-identifier">new</span>()
+                        <span class="ruby-identifier">i</span>=<span class="ruby-value">0</span>
+                        <span class="ruby-keyword">while</span> <span class="ruby-identifier">i</span> <span class="ruby-operator">&lt;</span> <span class="ruby-identifier">attribute_count</span>
+                                <span class="ruby-identifier">index_offset</span> = <span class="ruby-identifier">i</span> * <span class="ruby-identifier">attribute_size</span> <span class="ruby-operator">+</span> (<span class="ruby-identifier">body_start</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">attribute_offset</span>)
+                                <span class="ruby-identifier">attr_namespace</span> = <span class="ruby-keyword">nil</span>
+                                <span class="ruby-keyword">if</span> <span class="ruby-identifier">read_word</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">index_offset</span>) <span class="ruby-operator">!=</span> <span class="ruby-constant">OFFSET_NO_ENTRY</span>
+                                        <span class="ruby-identifier">attr_uri</span> = <span class="ruby-identifier">stringpool_main</span>.<span class="ruby-identifier">values</span>[<span class="ruby-identifier">read_word</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">index_offset</span>)]
+                                        <span class="ruby-identifier">attr_namespace</span> = <span class="ruby-identifier">namespaces</span>[<span class="ruby-identifier">attr_uri</span>]
+                                <span class="ruby-keyword">end</span>
+                                <span class="ruby-identifier">attr_name</span> = <span class="ruby-identifier">stringpool_main</span>.<span class="ruby-identifier">values</span>[<span class="ruby-identifier">read_word</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">index_offset</span><span class="ruby-operator">+</span><span class="ruby-value">4</span>)]
+                                <span class="ruby-identifier">attr_raw</span> = <span class="ruby-keyword">nil</span>
+                                <span class="ruby-keyword">if</span> <span class="ruby-identifier">read_word</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">index_offset</span><span class="ruby-operator">+</span><span class="ruby-value">8</span>) <span class="ruby-operator">!=</span> <span class="ruby-constant">OFFSET_NO_ENTRY</span>
+                                        <span class="ruby-identifier">attr_raw</span> = <span class="ruby-identifier">stringpool_main</span>.<span class="ruby-identifier">values</span>[<span class="ruby-identifier">read_word</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">index_offset</span><span class="ruby-operator">+</span><span class="ruby-value">8</span>)]
+                                <span class="ruby-keyword">end</span>                                        
+                                <span class="ruby-identifier">entry</span> = <span class="ruby-constant">ResTypeEntry</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value">0</span>, <span class="ruby-keyword">nil</span>, <span class="ruby-identifier">read_byte</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">index_offset</span><span class="ruby-operator">+</span><span class="ruby-value">15</span>), <span class="ruby-identifier">read_word</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">index_offset</span><span class="ruby-operator">+</span><span class="ruby-value">16</span>))
+                                
+                                <span class="ruby-identifier">attributes</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-constant">XmlAttribute</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">attr_namespace</span>, <span class="ruby-identifier">attr_name</span>, <span class="ruby-identifier">attr_raw</span>, <span class="ruby-identifier">entry</span>)
+                                <span class="ruby-identifier">i</span> <span class="ruby-operator">+=</span> <span class="ruby-value">1</span>
+                        <span class="ruby-keyword">end</span>
+                        
+                        <span class="ruby-identifier">element</span> = <span class="ruby-constant">XmlElement</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">tree_header</span>, <span class="ruby-identifier">namespace</span>, <span class="ruby-identifier">name</span>, <span class="ruby-identifier">id_idx</span>, <span class="ruby-identifier">class_idx</span>, <span class="ruby-identifier">style_idx</span>, <span class="ruby-identifier">attributes</span>, <span class="ruby-identifier">xml_output</span> <span class="ruby-operator">==</span> <span class="ruby-string">&quot;&quot;</span>)
+                        
+                        <span class="ruby-identifier">puts</span> <span class="ruby-node">&quot;ELEMENT_START: #{element.namespace} #{element.name}&quot;</span> <span class="ruby-keyword">if</span> <span class="ruby-constant">DEBUG</span>
+                        <span class="ruby-identifier">display_name</span> = <span class="ruby-identifier">element</span>.<span class="ruby-identifier">namespace</span> <span class="ruby-operator">==</span> <span class="ruby-keyword">nil</span> <span class="ruby-operator">?</span> <span class="ruby-identifier">element</span>.<span class="ruby-identifier">name</span> <span class="ruby-operator">:</span> <span class="ruby-node">&quot;#{element.namespace}:#{element.name}&quot;</span>
+
+                        <span class="ruby-keyword">if</span> <span class="ruby-identifier">pretty</span>
+                                <span class="ruby-identifier">xml_output</span> <span class="ruby-operator">+=</span> <span class="ruby-string">&quot;\n&quot;</span> <span class="ruby-operator">+</span> (<span class="ruby-string">&quot;  &quot;</span> * <span class="ruby-identifier">indent</span>)
+                                <span class="ruby-identifier">indent</span> <span class="ruby-operator">+=</span> <span class="ruby-value">1</span>
+                        <span class="ruby-keyword">end</span>
+                        <span class="ruby-identifier">xml_output</span> <span class="ruby-operator">+=</span> <span class="ruby-node">&quot;&lt;#{display_name} &quot;</span>
+                        <span class="ruby-comment"># Only print namespaces on the root element</span>
+                        <span class="ruby-keyword">if</span> <span class="ruby-identifier">element</span>.<span class="ruby-identifier">is_root</span>
+                                <span class="ruby-identifier">keys</span> = <span class="ruby-identifier">namespaces</span>.<span class="ruby-identifier">keys</span>
+                                <span class="ruby-identifier">keys</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">key</span><span class="ruby-operator">|</span>
+                                        <span class="ruby-identifier">xml_output</span> <span class="ruby-operator">+=</span> <span class="ruby-node">&quot;xmlns:#{namespaces[key]}=\&quot;#{key}\&quot; &quot;</span>
+                                        <span class="ruby-keyword">if</span> <span class="ruby-identifier">pretty</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">key</span> <span class="ruby-operator">!=</span> <span class="ruby-identifier">keys</span>.<span class="ruby-identifier">last</span>
+                                                <span class="ruby-identifier">xml_output</span> <span class="ruby-operator">+=</span> <span class="ruby-string">&quot;\n&quot;</span> <span class="ruby-operator">+</span> (<span class="ruby-string">&quot;  &quot;</span> * <span class="ruby-identifier">indent</span>)
+                                        <span class="ruby-keyword">end</span>
+                                <span class="ruby-keyword">end</span>
+                        <span class="ruby-keyword">end</span>
+
+                        <span class="ruby-identifier">element</span>.<span class="ruby-identifier">attributes</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">attr</span><span class="ruby-operator">|</span>
+                                <span class="ruby-identifier">puts</span> <span class="ruby-node">&quot;---ATTRIBUTE: #{attr.namespace} #{attr.name} #{attr.raw} =&gt; #{attr.value.data_type} #{attr.value.data.to_s(16)}&quot;</span> <span class="ruby-keyword">if</span> <span class="ruby-constant">DEBUG</span>
+                                <span class="ruby-identifier">display_name</span> = <span class="ruby-identifier">attr</span>.<span class="ruby-identifier">namespace</span> <span class="ruby-operator">==</span> <span class="ruby-keyword">nil</span> <span class="ruby-operator">?</span> <span class="ruby-identifier">attr</span>.<span class="ruby-identifier">name</span> <span class="ruby-operator">:</span> <span class="ruby-node">&quot;#{attr.namespace}:#{attr.name}&quot;</span>
+                                <span class="ruby-identifier">display_value</span> = <span class="ruby-keyword">nil</span>
+                                <span class="ruby-keyword">if</span> <span class="ruby-identifier">attr</span>.<span class="ruby-identifier">raw</span> <span class="ruby-operator">!=</span> <span class="ruby-keyword">nil</span> <span class="ruby-comment"># Use raw value</span>
+                                        <span class="ruby-identifier">display_value</span> = <span class="ruby-identifier">attr</span>.<span class="ruby-identifier">raw</span>
+                                <span class="ruby-keyword">elsif</span> <span class="ruby-identifier">attr</span>.<span class="ruby-identifier">value</span>.<span class="ruby-identifier">data_type</span> <span class="ruby-operator">==</span> <span class="ruby-value">1</span>
+                                        <span class="ruby-comment"># Find the resource</span>
+                                        <span class="ruby-identifier">default_res</span> = <span class="ruby-identifier">apk_resources</span>.<span class="ruby-identifier">get_default_resource_value</span>(<span class="ruby-identifier">attr</span>.<span class="ruby-identifier">value</span>.<span class="ruby-identifier">data</span>)
+                                        <span class="ruby-keyword">if</span> <span class="ruby-identifier">resolve_resources</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">default_res</span> <span class="ruby-operator">!=</span> <span class="ruby-keyword">nil</span>
+                                                <span class="ruby-identifier">display_value</span> = <span class="ruby-identifier">default_res</span>.<span class="ruby-identifier">data</span>
+                                        <span class="ruby-keyword">else</span>
+                                                <span class="ruby-identifier">display_value</span> = <span class="ruby-identifier">apk_resources</span>.<span class="ruby-identifier">get_resource_key</span>(<span class="ruby-identifier">attr</span>.<span class="ruby-identifier">value</span>.<span class="ruby-identifier">data</span>, <span class="ruby-keyword">true</span>)
+                                        <span class="ruby-keyword">end</span>
+                                <span class="ruby-keyword">else</span> <span class="ruby-comment"># Value is a constant</span>
+                                        <span class="ruby-identifier">display_value</span> = <span class="ruby-node">&quot;0x#{attr.value.data.to_s(16)}&quot;</span>
+                                <span class="ruby-keyword">end</span>
+                                
+                                <span class="ruby-keyword">if</span> <span class="ruby-identifier">pretty</span>
+                                        <span class="ruby-identifier">xml_output</span> <span class="ruby-operator">+=</span> <span class="ruby-string">&quot;\n&quot;</span> <span class="ruby-operator">+</span> (<span class="ruby-string">&quot;  &quot;</span> * <span class="ruby-identifier">indent</span>)
+                                <span class="ruby-keyword">end</span>                                        
+                                <span class="ruby-identifier">xml_output</span> <span class="ruby-operator">+=</span> <span class="ruby-node">&quot;#{display_name}=\&quot;#{display_value}\&quot; &quot;</span>
+                        <span class="ruby-keyword">end</span>
+                        
+                        <span class="ruby-identifier">xml_output</span> <span class="ruby-operator">+=</span> <span class="ruby-string">&quot;&gt;&quot;</span>
+                                
+                        <span class="ruby-identifier">current</span> <span class="ruby-operator">+=</span> <span class="ruby-identifier">header</span>.<span class="ruby-identifier">chunk_size</span>
+                <span class="ruby-keyword">elsif</span> <span class="ruby-identifier">header</span>.<span class="ruby-identifier">type</span> <span class="ruby-operator">==</span> <span class="ruby-constant">TYPE_XML_ENDELEMENT</span>
+                        <span class="ruby-identifier">tree_header</span> = <span class="ruby-identifier">parse_tree_header</span>(<span class="ruby-identifier">header</span>, <span class="ruby-identifier">data</span>, <span class="ruby-identifier">current</span>)
+                        <span class="ruby-identifier">body_start</span> = <span class="ruby-identifier">current</span><span class="ruby-operator">+</span><span class="ruby-identifier">header</span>.<span class="ruby-identifier">size</span>
+                        <span class="ruby-identifier">namespace</span> = <span class="ruby-keyword">nil</span>
+                        <span class="ruby-keyword">if</span> <span class="ruby-identifier">read_word</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">body_start</span>) <span class="ruby-operator">!=</span> <span class="ruby-constant">OFFSET_NO_ENTRY</span>
+                                <span class="ruby-identifier">namespace</span> = <span class="ruby-identifier">stringpool_main</span>.<span class="ruby-identifier">values</span>[<span class="ruby-identifier">read_word</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">body_start</span>)]
+                        <span class="ruby-keyword">end</span>
+                        <span class="ruby-identifier">name</span> = <span class="ruby-identifier">stringpool_main</span>.<span class="ruby-identifier">values</span>[<span class="ruby-identifier">read_word</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">body_start</span><span class="ruby-operator">+</span><span class="ruby-value">4</span>)]
+                        
+                        <span class="ruby-identifier">puts</span> <span class="ruby-node">&quot;ELEMENT END: #{namespace} #{name}&quot;</span> <span class="ruby-keyword">if</span> <span class="ruby-constant">DEBUG</span>
+                        <span class="ruby-identifier">display_name</span> = <span class="ruby-identifier">namespace</span> <span class="ruby-operator">==</span> <span class="ruby-keyword">nil</span> <span class="ruby-operator">?</span> <span class="ruby-identifier">name</span> <span class="ruby-operator">:</span> <span class="ruby-node">&quot;#{namespace}:#{name}&quot;</span>
+                        <span class="ruby-keyword">if</span> <span class="ruby-identifier">pretty</span>
+                                <span class="ruby-identifier">indent</span> <span class="ruby-operator">-=</span> <span class="ruby-value">1</span>
+                                <span class="ruby-keyword">if</span> <span class="ruby-identifier">indent</span> <span class="ruby-operator">&lt;</span> <span class="ruby-value">0</span>
+                                        <span class="ruby-identifier">indent</span> = <span class="ruby-value">0</span>
+                                <span class="ruby-keyword">end</span>
+                                <span class="ruby-identifier">xml_output</span> <span class="ruby-operator">+=</span> <span class="ruby-string">&quot;\n&quot;</span> <span class="ruby-operator">+</span> (<span class="ruby-string">&quot;  &quot;</span> * <span class="ruby-identifier">indent</span>)
+                        <span class="ruby-keyword">end</span>
+                        <span class="ruby-identifier">xml_output</span> <span class="ruby-operator">+=</span> <span class="ruby-node">&quot;&lt;/#{display_name}&gt;&quot;</span>
+
+                        
+                        <span class="ruby-identifier">current</span> <span class="ruby-operator">+=</span> <span class="ruby-identifier">header</span>.<span class="ruby-identifier">chunk_size</span>
+                <span class="ruby-keyword">elsif</span> <span class="ruby-identifier">header</span>.<span class="ruby-identifier">type</span> <span class="ruby-operator">==</span> <span class="ruby-constant">TYPE_XML_CDATA</span>
+                        <span class="ruby-identifier">tree_header</span> = <span class="ruby-identifier">parse_tree_header</span>(<span class="ruby-identifier">header</span>, <span class="ruby-identifier">data</span>, <span class="ruby-identifier">current</span>)
+                        <span class="ruby-identifier">body_start</span> = <span class="ruby-identifier">current</span><span class="ruby-operator">+</span><span class="ruby-identifier">header</span>.<span class="ruby-identifier">size</span>
+
+                        <span class="ruby-identifier">cdata</span> = <span class="ruby-identifier">stringpool_main</span>.<span class="ruby-identifier">values</span>[<span class="ruby-identifier">read_word</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">body_start</span>)]
+                        <span class="ruby-identifier">cdata_type</span> = <span class="ruby-identifier">read_word</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">body_start</span><span class="ruby-operator">+</span><span class="ruby-value">7</span>)
+                        <span class="ruby-identifier">cdata_value</span> = <span class="ruby-identifier">read_word</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">body_start</span><span class="ruby-operator">+</span><span class="ruby-value">8</span>)
+                        <span class="ruby-identifier">puts</span> <span class="ruby-node">&quot;CDATA: #{cdata} #{cdata_type} #{cdata_value}&quot;</span> <span class="ruby-keyword">if</span> <span class="ruby-constant">DEBUG</span>
+                        
+                        <span class="ruby-identifier">cdata</span>.<span class="ruby-identifier">split</span>(<span class="ruby-regexp">/\r?\n/</span>).<span class="ruby-identifier">each</span> <span class="ruby-keyword">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">item</span><span class="ruby-operator">|</span>
+                                <span class="ruby-keyword">if</span> <span class="ruby-identifier">pretty</span>
+                                        <span class="ruby-identifier">xml_output</span> <span class="ruby-operator">+=</span> <span class="ruby-string">&quot;\n&quot;</span> <span class="ruby-operator">+</span> (<span class="ruby-string">&quot;  &quot;</span> * <span class="ruby-identifier">indent</span>)
+                                <span class="ruby-keyword">end</span>        
+                                <span class="ruby-identifier">xml_output</span> <span class="ruby-operator">+=</span> <span class="ruby-node">&quot;&lt;![CDATA[#{item.strip}]]&gt;&quot;</span>
+                        <span class="ruby-keyword">end</span>
+                        
+                        <span class="ruby-identifier">current</span> <span class="ruby-operator">+=</span> <span class="ruby-identifier">header</span>.<span class="ruby-identifier">chunk_size</span>
+                <span class="ruby-keyword">else</span>
+                        <span class="ruby-identifier">puts</span> <span class="ruby-node">&quot;Unknown Chunk Found: #{header.type} #{header.size}&quot;</span> <span class="ruby-keyword">if</span> <span class="ruby-constant">DEBUG</span>
+                        <span class="ruby-comment">## End Immediately</span>
+                        <span class="ruby-identifier">current</span> = <span class="ruby-identifier">data</span>.<span class="ruby-identifier">length</span>
+                <span class="ruby-keyword">end</span>
+        <span class="ruby-keyword">end</span>
+        
+        <span class="ruby-keyword">return</span> <span class="ruby-identifier">xml_output</span>
+<span class="ruby-keyword">end</span></pre>
+            </div><!-- parse_xml-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- parse_xml-method -->
+
+      
+      </div><!-- public-instance-method-details -->
+    
+    </div><!-- 5Buntitled-5D -->
+  
+
+  </div><!-- documentation -->
+
+  <div id="validator-badges">
+    <p><small><a href="http://validator.w3.org/check/referer">[Validate]</a></small></p>
+    <p><small>Generated with the <a href="http://deveiate.org/projects/Darkfish-Rdoc/">Darkfish
+      Rdoc Generator</a> 2</small>.</p>
+  </div>
+
+</body>
+</html>
+

@@ -24,6 +24,8 @@ Gem::Specification.new do |s|
   s.description = "Library to assist reading resource data out of Android APKs"
   s.authors     = ["Dave Smith"]
   s.email       = 'dave@xcellentcreations.com'
-  s.files       = ["lib/apktools/apkresources.rb", "lib/apktools/resconfiguration.rb"]
+  s.files       = ["lib/apktools/apkresources.rb", "lib/apktools/apkxml.rb", "lib/apktools/resconfiguration.rb"]
   s.homepage    = 'http://github.com/devunwired/apktools'
+  
+  s.add_runtime_dependency "rubyzip"
 end
