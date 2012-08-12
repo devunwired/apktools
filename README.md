@@ -6,6 +6,8 @@ This library only contains utility code to read XML and resource data from an AP
 
 Its intended purpose is to assist web applications that need to read basic resource information from APKs that are uploaded in order to manage them (like a private app store).
 
+**This library is in early beta, feedback is greatly appreciated.  Please submit issues or pull requests for anything you'd like to see added or changed to make this library more useful.**
+
 Installing/Building
 ========
 This library is packaged as a gem, and latest version is hosted on RubyGems.  You can install it directly via:
