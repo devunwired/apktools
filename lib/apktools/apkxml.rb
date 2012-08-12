@@ -84,9 +84,8 @@ class ApkXml
 	#
 	# * +namespace+ = Namespace prefix of the attribute
 	# * +name+ = Name of the attribute
-	# * +raw+ = Original raw string value of the attribute, if one exists
-	# * +value+ = ResTypeEntry for the typed value of the attribute, if one exists
-	XmlAttribute = Struct.new(:namespace, :name, :raw, :value)
+	# * +value+ = Value of the attribute
+	XmlAttribute = Struct.new(:namespace, :name, :value)
 	
 	##
 	# Structure that houses the data for a given resource entry
@@ -106,6 +105,8 @@ class ApkXml
 	attr_reader :current_apk
 	# ApkResources instance used to resolve resources in this APK
 	attr_reader :apk_resources
+	# Array of XmlElements from the last parse operation
+	attr_reader :xml_elements
 	
 	##
 	# Create a new ApkXml instance from the specified +apk_file+
@@ -126,6 +127,8 @@ class ApkXml
 	#
 	# This opens and parses the contents of the APK's resources.arsc file.
 	def parse_xml(xml_file, pretty = false, resolve_resources = false)
+		# Reset variables
+		@xml_elements = Array.new()
 		xml_output = ""
 		indent = 0
 		data = nil		
@@ -192,6 +195,7 @@ class ApkXml
 			elsif header.type == TYPE_XML_STARTELEMENT
 				tree_header = parse_tree_header(header, data, current)
 				body_start = current+header.size
+				# Parse the element/attribute data
 				namespace = nil
 				if read_word(data, body_start) != OFFSET_NO_ENTRY
 					namespace = stringpool_main.values[read_word(data, body_start)]
@@ -217,16 +221,34 @@ class ApkXml
 					attr_name = stringpool_main.values[read_word(data, index_offset+4)]
 					attr_raw = nil
 					if read_word(data, index_offset+8) != OFFSET_NO_ENTRY
+						# Attribute has a raw value, use it
 						attr_raw = stringpool_main.values[read_word(data, index_offset+8)]
 					end					
 					entry = ResTypeEntry.new(0, nil, read_byte(data, index_offset+15), read_word(data, index_offset+16))
 					
-					attributes << XmlAttribute.new(attr_namespace, attr_name, attr_raw, entry)
+					attr_value = nil
+					if attr_raw != nil # Use raw value
+						attr_value = attr_raw
+					elsif entry.data_type == 1
+						# Find the resource
+						default_res = apk_resources.get_default_resource_value(entry.data)
+						if resolve_resources && default_res != nil
+							attr_value = default_res.data
+						else
+							attr_value = apk_resources.get_resource_key(entry.data, true)
+						end
+					else # Value is a constant
+						attr_value = "0x#{entry.data.to_s(16)}"
+					end
+
+					
+					attributes << XmlAttribute.new(attr_namespace, attr_name, attr_value)
 					i += 1
 				end
 				
 				element = XmlElement.new(tree_header, namespace, name, id_idx, class_idx, style_idx, attributes, xml_output == "")
 				
+				# Print the element/attribute data
 				puts "ELEMENT_START: #{element.namespace} #{element.name}" if DEBUG
 				display_name = element.namespace == nil ? element.name : "#{element.namespace}:#{element.name}"
 
@@ -247,31 +269,19 @@ class ApkXml
 				end
 
 				element.attributes.each do |attr|
-					puts "---ATTRIBUTE: #{attr.namespace} #{attr.name} #{attr.raw} => #{attr.value.data_type} #{attr.value.data.to_s(16)}" if DEBUG
+					puts "---ATTRIBUTE: #{attr.namespace} #{attr.name} #{attr.value}" if DEBUG
 					display_name = attr.namespace == nil ? attr.name : "#{attr.namespace}:#{attr.name}"
-					display_value = nil
-					if attr.raw != nil # Use raw value
-						display_value = attr.raw
-					elsif attr.value.data_type == 1
-						# Find the resource
-						default_res = apk_resources.get_default_resource_value(attr.value.data)
-						if resolve_resources && default_res != nil
-							display_value = default_res.data
-						else
-							display_value = apk_resources.get_resource_key(attr.value.data, true)
-						end
-					else # Value is a constant
-						display_value = "0x#{attr.value.data.to_s(16)}"
-					end
-					
 					if pretty
 						xml_output += "\n" + ("  " * indent)
 					end					
-					xml_output += "#{display_name}=\"#{display_value}\" "
+					xml_output += "#{display_name}=\"#{attr.value}\" "
 				end
 				
 				xml_output += ">"
-					
+				
+				# Push every new element onto the array
+				@xml_elements << element
+				
 				current += header.chunk_size
 			elsif header.type == TYPE_XML_ENDELEMENT
 				tree_header = parse_tree_header(header, data, current)

@@ -191,10 +191,7 @@ Struct.new(:namespace, :name, :raw, :value)</p>
 </li><li>
 <p><tt>name</tt> = Name of the attribute</p>
 </li><li>
-<p><tt>raw</tt> = Original raw string value of the attribute, if one exists</p>
-</li><li>
-<p><tt>value</tt> = <a href="ApkXml.html#ResTypeEntry">ResTypeEntry</a> for
-the typed value of the attribute, if one exists</p>
+<p><tt>value</tt> = Value of the attribute</p>
 </li></ul></dd>
           
         
@@ -298,6 +295,21 @@ resources in this APK</p>
           </div>
         </div>
         
+        <div id="xml_elements-attribute-method" class="method-detail">
+          <a name="xml_elements"></a>
+          
+          <div class="method-heading attribute-method-heading">
+            <span class="method-name">xml_elements</span><span
+              class="attribute-access-type">[R]</span>
+          </div>
+
+          <div class="method-description">
+          
+          <p>Array of XmlElements from the last parse operation</p>
+          
+          </div>
+        </div>
+        
       </div><!-- attribute-method-details -->
       
 
@@ -329,7 +341,7 @@ resources in this APK</p>
             
             <div class="method-source-code" id="new-source">
 <pre>
-<span class="ruby-comment"># File lib/apktools/apkxml.rb, line 114</span>
+<span class="ruby-comment"># File lib/apktools/apkxml.rb, line 115</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">initialize</span>(<span class="ruby-identifier">apk_file</span>)
         <span class="ruby-ivar">@current_apk</span> = <span class="ruby-identifier">apk_file</span>
         <span class="ruby-ivar">@apk_resources</span> = <span class="ruby-constant">ApkResources</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">apk_file</span>)
@@ -377,8 +389,10 @@ to their default value</p>
             
             <div class="method-source-code" id="parse_xml-source">
 <pre>
-<span class="ruby-comment"># File lib/apktools/apkxml.rb, line 128</span>
+<span class="ruby-comment"># File lib/apktools/apkxml.rb, line 129</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">parse_xml</span>(<span class="ruby-identifier">xml_file</span>, <span class="ruby-identifier">pretty</span> = <span class="ruby-keyword">false</span>, <span class="ruby-identifier">resolve_resources</span> = <span class="ruby-keyword">false</span>)
+        <span class="ruby-comment"># Reset variables</span>
+        <span class="ruby-ivar">@xml_elements</span> = <span class="ruby-constant">Array</span>.<span class="ruby-identifier">new</span>()
         <span class="ruby-identifier">xml_output</span> = <span class="ruby-string">&quot;&quot;</span>
         <span class="ruby-identifier">indent</span> = <span class="ruby-value">0</span>
         <span class="ruby-identifier">data</span> = <span class="ruby-keyword">nil</span>            
@@ -445,6 +459,7 @@ to their default value</p>
                 <span class="ruby-keyword">elsif</span> <span class="ruby-identifier">header</span>.<span class="ruby-identifier">type</span> <span class="ruby-operator">==</span> <span class="ruby-constant">TYPE_XML_STARTELEMENT</span>
                         <span class="ruby-identifier">tree_header</span> = <span class="ruby-identifier">parse_tree_header</span>(<span class="ruby-identifier">header</span>, <span class="ruby-identifier">data</span>, <span class="ruby-identifier">current</span>)
                         <span class="ruby-identifier">body_start</span> = <span class="ruby-identifier">current</span><span class="ruby-operator">+</span><span class="ruby-identifier">header</span>.<span class="ruby-identifier">size</span>
+                        <span class="ruby-comment"># Parse the element/attribute data</span>
                         <span class="ruby-identifier">namespace</span> = <span class="ruby-keyword">nil</span>
                         <span class="ruby-keyword">if</span> <span class="ruby-identifier">read_word</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">body_start</span>) <span class="ruby-operator">!=</span> <span class="ruby-constant">OFFSET_NO_ENTRY</span>
                                 <span class="ruby-identifier">namespace</span> = <span class="ruby-identifier">stringpool_main</span>.<span class="ruby-identifier">values</span>[<span class="ruby-identifier">read_word</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">body_start</span>)]
@@ -470,16 +485,34 @@ to their default value</p>
                                 <span class="ruby-identifier">attr_name</span> = <span class="ruby-identifier">stringpool_main</span>.<span class="ruby-identifier">values</span>[<span class="ruby-identifier">read_word</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">index_offset</span><span class="ruby-operator">+</span><span class="ruby-value">4</span>)]
                                 <span class="ruby-identifier">attr_raw</span> = <span class="ruby-keyword">nil</span>
                                 <span class="ruby-keyword">if</span> <span class="ruby-identifier">read_word</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">index_offset</span><span class="ruby-operator">+</span><span class="ruby-value">8</span>) <span class="ruby-operator">!=</span> <span class="ruby-constant">OFFSET_NO_ENTRY</span>
+                                        <span class="ruby-comment"># Attribute has a raw value, use it</span>
                                         <span class="ruby-identifier">attr_raw</span> = <span class="ruby-identifier">stringpool_main</span>.<span class="ruby-identifier">values</span>[<span class="ruby-identifier">read_word</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">index_offset</span><span class="ruby-operator">+</span><span class="ruby-value">8</span>)]
                                 <span class="ruby-keyword">end</span>                                        
                                 <span class="ruby-identifier">entry</span> = <span class="ruby-constant">ResTypeEntry</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value">0</span>, <span class="ruby-keyword">nil</span>, <span class="ruby-identifier">read_byte</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">index_offset</span><span class="ruby-operator">+</span><span class="ruby-value">15</span>), <span class="ruby-identifier">read_word</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">index_offset</span><span class="ruby-operator">+</span><span class="ruby-value">16</span>))
                                 
-                                <span class="ruby-identifier">attributes</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-constant">XmlAttribute</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">attr_namespace</span>, <span class="ruby-identifier">attr_name</span>, <span class="ruby-identifier">attr_raw</span>, <span class="ruby-identifier">entry</span>)
+                                <span class="ruby-identifier">attr_value</span> = <span class="ruby-keyword">nil</span>
+                                <span class="ruby-keyword">if</span> <span class="ruby-identifier">attr_raw</span> <span class="ruby-operator">!=</span> <span class="ruby-keyword">nil</span> <span class="ruby-comment"># Use raw value</span>
+                                        <span class="ruby-identifier">attr_value</span> = <span class="ruby-identifier">attr_raw</span>
+                                <span class="ruby-keyword">elsif</span> <span class="ruby-identifier">entry</span>.<span class="ruby-identifier">data_type</span> <span class="ruby-operator">==</span> <span class="ruby-value">1</span>
+                                        <span class="ruby-comment"># Find the resource</span>
+                                        <span class="ruby-identifier">default_res</span> = <span class="ruby-identifier">apk_resources</span>.<span class="ruby-identifier">get_default_resource_value</span>(<span class="ruby-identifier">entry</span>.<span class="ruby-identifier">data</span>)
+                                        <span class="ruby-keyword">if</span> <span class="ruby-identifier">resolve_resources</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">default_res</span> <span class="ruby-operator">!=</span> <span class="ruby-keyword">nil</span>
+                                                <span class="ruby-identifier">attr_value</span> = <span class="ruby-identifier">default_res</span>.<span class="ruby-identifier">data</span>
+                                        <span class="ruby-keyword">else</span>
+                                                <span class="ruby-identifier">attr_value</span> = <span class="ruby-identifier">apk_resources</span>.<span class="ruby-identifier">get_resource_key</span>(<span class="ruby-identifier">entry</span>.<span class="ruby-identifier">data</span>, <span class="ruby-keyword">true</span>)
+                                        <span class="ruby-keyword">end</span>
+                                <span class="ruby-keyword">else</span> <span class="ruby-comment"># Value is a constant</span>
+                                        <span class="ruby-identifier">attr_value</span> = <span class="ruby-node">&quot;0x#{entry.data.to_s(16)}&quot;</span>
+                                <span class="ruby-keyword">end</span>
+
+                                
+                                <span class="ruby-identifier">attributes</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-constant">XmlAttribute</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">attr_namespace</span>, <span class="ruby-identifier">attr_name</span>, <span class="ruby-identifier">attr_value</span>)
                                 <span class="ruby-identifier">i</span> <span class="ruby-operator">+=</span> <span class="ruby-value">1</span>
                         <span class="ruby-keyword">end</span>
                         
                         <span class="ruby-identifier">element</span> = <span class="ruby-constant">XmlElement</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">tree_header</span>, <span class="ruby-identifier">namespace</span>, <span class="ruby-identifier">name</span>, <span class="ruby-identifier">id_idx</span>, <span class="ruby-identifier">class_idx</span>, <span class="ruby-identifier">style_idx</span>, <span class="ruby-identifier">attributes</span>, <span class="ruby-identifier">xml_output</span> <span class="ruby-operator">==</span> <span class="ruby-string">&quot;&quot;</span>)
                         
+                        <span class="ruby-comment"># Print the element/attribute data</span>
                         <span class="ruby-identifier">puts</span> <span class="ruby-node">&quot;ELEMENT_START: #{element.namespace} #{element.name}&quot;</span> <span class="ruby-keyword">if</span> <span class="ruby-constant">DEBUG</span>
                         <span class="ruby-identifier">display_name</span> = <span class="ruby-identifier">element</span>.<span class="ruby-identifier">namespace</span> <span class="ruby-operator">==</span> <span class="ruby-keyword">nil</span> <span class="ruby-operator">?</span> <span class="ruby-identifier">element</span>.<span class="ruby-identifier">name</span> <span class="ruby-operator">:</span> <span class="ruby-node">&quot;#{element.namespace}:#{element.name}&quot;</span>
 
@@ -500,31 +533,19 @@ to their default value</p>
                         <span class="ruby-keyword">end</span>
 
                         <span class="ruby-identifier">element</span>.<span class="ruby-identifier">attributes</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">attr</span><span class="ruby-operator">|</span>
-                                <span class="ruby-identifier">puts</span> <span class="ruby-node">&quot;---ATTRIBUTE: #{attr.namespace} #{attr.name} #{attr.raw} =&gt; #{attr.value.data_type} #{attr.value.data.to_s(16)}&quot;</span> <span class="ruby-keyword">if</span> <span class="ruby-constant">DEBUG</span>
+                                <span class="ruby-identifier">puts</span> <span class="ruby-node">&quot;---ATTRIBUTE: #{attr.namespace} #{attr.name} #{attr.value}&quot;</span> <span class="ruby-keyword">if</span> <span class="ruby-constant">DEBUG</span>
                                 <span class="ruby-identifier">display_name</span> = <span class="ruby-identifier">attr</span>.<span class="ruby-identifier">namespace</span> <span class="ruby-operator">==</span> <span class="ruby-keyword">nil</span> <span class="ruby-operator">?</span> <span class="ruby-identifier">attr</span>.<span class="ruby-identifier">name</span> <span class="ruby-operator">:</span> <span class="ruby-node">&quot;#{attr.namespace}:#{attr.name}&quot;</span>
-                                <span class="ruby-identifier">display_value</span> = <span class="ruby-keyword">nil</span>
-                                <span class="ruby-keyword">if</span> <span class="ruby-identifier">attr</span>.<span class="ruby-identifier">raw</span> <span class="ruby-operator">!=</span> <span class="ruby-keyword">nil</span> <span class="ruby-comment"># Use raw value</span>
-                                        <span class="ruby-identifier">display_value</span> = <span class="ruby-identifier">attr</span>.<span class="ruby-identifier">raw</span>
-                                <span class="ruby-keyword">elsif</span> <span class="ruby-identifier">attr</span>.<span class="ruby-identifier">value</span>.<span class="ruby-identifier">data_type</span> <span class="ruby-operator">==</span> <span class="ruby-value">1</span>
-                                        <span class="ruby-comment"># Find the resource</span>
-                                        <span class="ruby-identifier">default_res</span> = <span class="ruby-identifier">apk_resources</span>.<span class="ruby-identifier">get_default_resource_value</span>(<span class="ruby-identifier">attr</span>.<span class="ruby-identifier">value</span>.<span class="ruby-identifier">data</span>)
-                                        <span class="ruby-keyword">if</span> <span class="ruby-identifier">resolve_resources</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">default_res</span> <span class="ruby-operator">!=</span> <span class="ruby-keyword">nil</span>
-                                                <span class="ruby-identifier">display_value</span> = <span class="ruby-identifier">default_res</span>.<span class="ruby-identifier">data</span>
-                                        <span class="ruby-keyword">else</span>
-                                                <span class="ruby-identifier">display_value</span> = <span class="ruby-identifier">apk_resources</span>.<span class="ruby-identifier">get_resource_key</span>(<span class="ruby-identifier">attr</span>.<span class="ruby-identifier">value</span>.<span class="ruby-identifier">data</span>, <span class="ruby-keyword">true</span>)
-                                        <span class="ruby-keyword">end</span>
-                                <span class="ruby-keyword">else</span> <span class="ruby-comment"># Value is a constant</span>
-                                        <span class="ruby-identifier">display_value</span> = <span class="ruby-node">&quot;0x#{attr.value.data.to_s(16)}&quot;</span>
-                                <span class="ruby-keyword">end</span>
-                                
                                 <span class="ruby-keyword">if</span> <span class="ruby-identifier">pretty</span>
                                         <span class="ruby-identifier">xml_output</span> <span class="ruby-operator">+=</span> <span class="ruby-string">&quot;\n&quot;</span> <span class="ruby-operator">+</span> (<span class="ruby-string">&quot;  &quot;</span> * <span class="ruby-identifier">indent</span>)
                                 <span class="ruby-keyword">end</span>                                        
-                                <span class="ruby-identifier">xml_output</span> <span class="ruby-operator">+=</span> <span class="ruby-node">&quot;#{display_name}=\&quot;#{display_value}\&quot; &quot;</span>
+                                <span class="ruby-identifier">xml_output</span> <span class="ruby-operator">+=</span> <span class="ruby-node">&quot;#{display_name}=\&quot;#{attr.value}\&quot; &quot;</span>
                         <span class="ruby-keyword">end</span>
                         
                         <span class="ruby-identifier">xml_output</span> <span class="ruby-operator">+=</span> <span class="ruby-string">&quot;&gt;&quot;</span>
-                                
+                        
+                        <span class="ruby-comment"># Push every new element onto the array</span>
+                        <span class="ruby-ivar">@xml_elements</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">element</span>
+                        
                         <span class="ruby-identifier">current</span> <span class="ruby-operator">+=</span> <span class="ruby-identifier">header</span>.<span class="ruby-identifier">chunk_size</span>
                 <span class="ruby-keyword">elsif</span> <span class="ruby-identifier">header</span>.<span class="ruby-identifier">type</span> <span class="ruby-operator">==</span> <span class="ruby-constant">TYPE_XML_ENDELEMENT</span>
                         <span class="ruby-identifier">tree_header</span> = <span class="ruby-identifier">parse_tree_header</span>(<span class="ruby-identifier">header</span>, <span class="ruby-identifier">data</span>, <span class="ruby-identifier">current</span>)
