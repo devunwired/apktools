@@ -18,7 +18,7 @@
 
 Gem::Specification.new do |s|
   s.name        = 'apktools'
-  s.version     = '0.3.0'
+  s.version     = '0.4.0'
   s.date        = '2012-08-12'
   s.summary     = "APKTools"
   s.description = "Library to assist reading resource data out of Android APKs"
