@@ -171,7 +171,7 @@ Utilities
 
 This gem also currently contains the following binary utility scripts:
 
-* `get_app_version`: Read the versionName and versionCode attributes out of AndroidManifest.xml; resolving any resource references if necessary.
+* `get_app_version.rb`: Read the versionName and versionCode attributes out of AndroidManifest.xml; resolving any resource references if necessary.
 
 Planned Work
 ============
