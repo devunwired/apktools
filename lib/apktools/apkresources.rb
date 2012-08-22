@@ -316,6 +316,7 @@ class ApkResources
 	#
 	# If xml_format is true, return value will be @<type>/<key>
 	# If xml_format is false or missing, return value will be R.<type>.<key>
+	# If the resource id does not exist, return value will be nil
 	
 	def get_resource_key(res_id, xml_format=false)
 		if res_id.is_a? String
@@ -329,7 +330,7 @@ class ApkResources
 
 		if res_package != @package_header.id
 			# This is not a resource we can parse
-			return res_id_to_s(res_id)
+			return nil
 		end
 		
 		res_spec = @type_data[res_type-1]
@@ -337,7 +338,7 @@ class ApkResources
 		
 		if entry == nil
 			# There is no entry in our table for this resource
-			return res_id_to_s(res_id)
+			return nil
 		end
 		
 		if xml_format
@@ -355,10 +356,18 @@ class ApkResources
 	# Returns: The default ResTypeEntry to the given id, or nil if no default exists
 	
 	def get_default_resource_value(res_id)
-		entries = get_resource_value(res_id)
-		default = ResTypeConfig.new(0, 0, 0, 0, 0, 0, 0, 0)
+		if res_id.is_a? String
+			res_id = res_id.hex
+		end
 		
-		return entries[default]
+		entries = get_resource_value(res_id)
+		if entries != nil
+			default = ResTypeConfig.new(0, 0, 0, 0, 0, 0, 0, 0)
+			default_entry = entries[default]
+			return default_entry
+		else
+			return nil
+		end
 	end
 
 	##
@@ -368,6 +377,7 @@ class ApkResources
 	# res_id: ID value of a resource as a FixNum or String representation (i.e. 0x7F060001)
 	#
 	# Returns: Hash of all entries matching this id, keyed by their matching ResTypeConfig
+	# or nil if the resource id cannot be found.
 	
 	def get_resource_value(res_id)
 		if res_id.is_a? String
@@ -381,7 +391,7 @@ class ApkResources
 
 		if res_package != @package_header.id
 			# This is not a resource we can parse
-			return res_id_to_s(res_id)
+			return nil
 		end
 		
 		res_spec = @type_data[res_type-1]
@@ -389,7 +399,7 @@ class ApkResources
 		entries = res_spec.types.entries[res_index]
 		if entries == nil
 			puts "Could not find #{type_name} ResType chunk" if DEBUG
-			return res_id_to_s(res_id)
+			return nil
 		end
 		
 		return entries
@@ -436,6 +446,8 @@ class ApkResources
 	
 	#Flag Constants
 	FLAG_UTF8 = 0x100 # :nodoc:
+	FLAG_COMPLEX = 0x0001 # :nodoc:
+	FLAG_PUBLIC = 0x0002 # :nodoc:
 	
 	OFFSET_NO_ENTRY = 0xFFFFFFFF # :nodoc:
 	HEADER_START = 0 # :nodoc:
