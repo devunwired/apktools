@@ -23,7 +23,7 @@ require 'apktools/apkxml'
 # Parse AndroidManifest.xml from given APK file and write XML data
 # to the given destination
 
-if ARGV.length != 1
+if ARGV.length != 2
 	puts "usage: read_manifest <APKFile> <OutFile>"
 	exit(1)
 end
