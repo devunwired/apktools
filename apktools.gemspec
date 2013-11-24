@@ -18,15 +18,16 @@
 
 Gem::Specification.new do |s|
   s.name        = 'apktools'
-  s.version     = '0.4.1'
-  s.date        = '2012-08-22'
+  s.version     = '0.5.0'
+  s.date        = '2013-11-24'
   s.summary     = "APKTools"
   s.description = "Library to assist reading resource data out of Android APKs"
   s.authors     = ["Dave Smith"]
-  s.email       = 'dave@xcellentcreations.com'
+  s.email       = 'dsmith@doubleencore.com'
   s.files       = ["lib/apktools/apkresources.rb", "lib/apktools/apkxml.rb", "lib/apktools/resconfiguration.rb"]
   s.homepage    = 'http://github.com/devunwired/apktools'
   
   s.executables << 'get_app_version.rb'
+  s.executables << 'read_manifest.rb'
   s.add_runtime_dependency "rubyzip"
 end
