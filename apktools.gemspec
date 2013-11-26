@@ -1,4 +1,4 @@
-# Copyright (C) 2012 Dave Smith
+# Copyright (C) 2013 Dave Smith
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy of this
 # software and associated documentation files (the "Software"), to deal in the Software
@@ -18,14 +18,15 @@
 
 Gem::Specification.new do |s|
   s.name        = 'apktools'
-  s.version     = '0.5.0'
-  s.date        = '2013-11-24'
+  s.version     = '0.5.2'
+  s.date        = '2013-11-25'
   s.summary     = "APKTools"
   s.description = "Library to assist reading resource data out of Android APKs"
   s.authors     = ["Dave Smith"]
   s.email       = 'dsmith@doubleencore.com'
   s.files       = ["lib/apktools/apkresources.rb", "lib/apktools/apkxml.rb", "lib/apktools/resconfiguration.rb"]
   s.homepage    = 'http://github.com/devunwired/apktools'
+  s.license     = 'MIT'
   
   s.executables << 'get_app_version.rb'
   s.executables << 'read_manifest.rb'
