@@ -143,7 +143,9 @@ class ApkResources
 		puts "Resource Package Count = #{header_package_count}" if DEBUG
 		if header_package_count > 1
 			puts "ApkResources only supports single package resources."
-			exit(1)
+      #Edit by bingoHuang: no need to exit hard
+      #exit(1)
+      #End
 		end
 		
 		# Parse the StringPool Chunk
@@ -334,7 +336,15 @@ class ApkResources
 		end
 		
 		res_spec = @type_data[res_type-1]
-		entry = res_spec.types.entries[res_index]
+
+    #Add by bingoHuang: it'll report error when res_spec is nil
+    if res_spec == nil
+      puts "res_spec is nil" if DEBUG
+      return nil
+    end
+    #End
+
+    entry = res_spec.types.entries[res_index]
 		
 		if entry == nil
 			# There is no entry in our table for this resource
@@ -395,7 +405,14 @@ class ApkResources
 		end
 		
 		res_spec = @type_data[res_type-1]
-		
+
+    #Add by bingoHuang: it'll report error when res_spec is nil
+    if res_spec == nil
+      puts "res_spec is nil" if DEBUG
+      return nil
+    end
+    #End
+
 		entries = res_spec.types.entries[res_index]
 		if entries == nil
 			puts "Could not find #{type_name} ResType chunk" if DEBUG
