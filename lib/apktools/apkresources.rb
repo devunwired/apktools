@@ -232,8 +232,12 @@ class ApkResources
 		end
 		
 		res_spec = package_element.type_data[res_type-1]
-		entry = res_spec.types.entries[res_index]
-		
+		if res_spec == nil
+			puts "Could not find ResTypeSpec for #{res_package} #{res_type}" if DEBUG
+			return nil
+		end
+
+		entry = res_spec.types.entries[res_index]		
 		if entry == nil
 			# There is no entry in our table for this resource
 			return nil
@@ -294,7 +298,11 @@ class ApkResources
 		end
 		
 		res_spec = package_element.type_data[res_type-1]
-		
+		if res_spec == nil
+			puts "Could not find ResTypeSpec for #{res_package} #{res_type}" if DEBUG
+			return nil
+		end
+
 		entries = res_spec.types.entries[res_index]
 		if entries == nil
 			puts "Could not find #{res_spec.types.id} ResType chunk" if DEBUG
@@ -342,6 +350,7 @@ class ApkResources
 	# Header Constants
 	CHUNKTYPE_TYPESPEC = 0x202 # :nodoc:
 	CHUNKTYPE_TYPE = 0x201 # :nodoc:
+	CHUNKTYPE_PACKAGE = 0x200 # :nodoc:
 	
 	#Flag Constants
 	FLAG_UTF8 = 0x100 # :nodoc:
@@ -554,6 +563,10 @@ class ApkResources
 				end
 				
 				current += header.chunk_size
+			elsif header.type == CHUNKTYPE_PACKAGE
+				## This is the next package chunk, move along
+				puts "Next Package Chunk Found...Ending" if DEBUG
+				current = data.length
 			else
 				puts "Unknown Chunk Found: #{header.type} #{header.size}" if DEBUG
 				## End Immediately

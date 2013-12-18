@@ -34,6 +34,6 @@ outfile = ARGV[1]
 
 # You can also optionally enable indented (pretty) output,
 # and resolving of resource values
-manifest_xml = xml.parse_xml("AndroidManifest.xml", true, true)
+manifest_xml = xml.parse_xml("AndroidManifest.xml", true, false)
 
 File.open(outfile, 'w') { |file| file.write(manifest_xml) }
