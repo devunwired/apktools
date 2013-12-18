@@ -1,4 +1,4 @@
-# Copyright (C) 2012 Dave Smith
+# Copyright (C) 2014 Dave Smith
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy of this
 # software and associated documentation files (the "Software"), to deal in the Software
@@ -54,6 +54,17 @@ class ApkResources
 	# * +key_strings+ = Array of the key string values present (e.g. "ic_launcher")
 	PackageHeader = Struct.new(:header, :id, :name, :type_strings, :key_strings)
 	
+	##
+	# Structure defining the resource contents for a package chunk
+	#
+	# Package = Struct.new(:header, :stringpool_typestrings, :stringpool_keystrings, :type_data)
+	#
+	# * +package_header+ = PackageHeader
+	# * +stringpool_typestrings+ = StringPool containing all type strings in the package
+	# * +stringpool_keystrings+ = StringPool containing all key strings in the package
+	# * +type_data+ = Array of ResTypeSpec chunks in the package
+	Package = Struct.new(:package_header, :stringpool_typestrings, :stringpool_keystrings, :type_data)
+
 	##
 	# Structure defining the flags for a block of common resources
 	#
@@ -113,12 +124,8 @@ class ApkResources
 	attr_reader :package_header
 	# StringPool containing all value strings in the package
 	attr_reader :stringpool_main
-	# StringPool containing all type strings in the package
-	attr_reader :stringpool_typestrings
-	# StringPool containing all key strings in the package
-	attr_reader :stringpool_keystrings
-	# Array of the ResTypeSpec chunks in the package
-	attr_reader :type_data
+	# Hash of Package chunks, keyed by package id
+	attr_reader :packages
 
 	##
 	# Create a new ApkResources instance from the specified +apk_file+
@@ -141,10 +148,6 @@ class ApkResources
 		header_chunk_size = read_word(data, HEADER_START+4)
 		header_package_count = read_word(data, HEADER_START+8)
 		puts "Resource Package Count = #{header_package_count}" if DEBUG
-		if header_package_count > 1
-			puts "ApkResources only supports single package resources."
-			exit(1)
-		end
 		
 		# Parse the StringPool Chunk
 		## Header
@@ -156,133 +159,15 @@ class ApkResources
 		# Parse the Package Chunk
 		## Header
 		startoffset_package = startoffset_pool + @stringpool_main.header.chunk_size
-		header = ChunkHeader.new( read_short(data, startoffset_package),
-				read_short(data, startoffset_package+2),
-				read_word(data, startoffset_package+4) )
-		
-		package_id = read_word(data, startoffset_package+8)
-		package_name = read_string(data, startoffset_package+12, 256, "UTF-8")
-		package_type_strings = read_word(data, startoffset_package+268)
-		package_last_type = read_word(data, startoffset_package+272)
-		package_key_strings = read_word(data, startoffset_package+276)
-		package_last_key = read_word(data, startoffset_package+280)
-		
-		@package_header = PackageHeader.new(header, package_id, package_name, package_type_strings, package_key_strings)
-		
-		## typeStrings StringPool
-		startoffset_typestrings = startoffset_package + package_type_strings
-		puts "Parse typeStrings StringPool Chunk" if DEBUG
-		@stringpool_typestrings = parse_stringpool(data, startoffset_typestrings)
-		
-		## keyStrings StringPool
-		startoffset_keystrings = startoffset_package + package_key_strings
-		puts "Parse keyStrings StringPool Chunk" if DEBUG
-		@stringpool_keystrings = parse_stringpool(data, startoffset_keystrings)
-		
-		## typeSpec/type Chunks		
-		@type_data = Array.new()
-		current_spec = nil
-		
-		current = startoffset_keystrings + @stringpool_keystrings.header.chunk_size
-		puts "Parse Type/TypeSpec Chunks" if DEBUG
-		while current < data.length
-			## Parse Header
-			header = ChunkHeader.new( read_short(data, current),
-					read_short(data, current+2),
-					read_word(data, current+4) )
-			## Check Type
-			if header.type == CHUNKTYPE_TYPESPEC
-				typespec_id = read_byte(data, current+8)
-				typespec_entrycount = read_word(data, current+12)
-				
-				## Parse the config flags for each entry
-				typespec_entries = Array.new()
-				i=0
-				while i < typespec_entrycount
-					offset = i * 4 + (current+16)
-					typespec_entries << read_word(data, offset)
-					
-					i += 1
-				end
-				
-				typespec_name = @stringpool_typestrings.values[typespec_id - 1]
-				current_spec = ResTypeSpec.new(header, typespec_name, typespec_entrycount, typespec_entries, nil)
-				
-				@type_data << current_spec
-				current += header.chunk_size
-			elsif header.type == CHUNKTYPE_TYPE
-				type_id = read_byte(data, current+8)
-				type_entrycount = read_word(data, current+12) 
-				type_entryoffset = read_word(data, current+16)
+		@packages = Hash.new()
+		i = 0
+		while i < header_package_count
+			package_element = parse_package(data, startoffset_package)
+			puts "Package #{package_element.package_header.id}" if DEBUG
+			startoffset_package = startoffset_package + package_element.package_header.header.chunk_size
+			@packages[package_element.package_header.id] = package_element
 
-				## The config flags set for this type chunk
-				## TODO: Vary the size of the config structure based on size to accomodate for new flags
-				config_size = read_word(data, current+20) # Number of bytes in structure
-				type_config = ResTypeConfig.new( read_word(data, current+24),
-						read_word(data, current+28),
-						read_word(data, current+32),
-						read_word(data, current+36 ),
-						read_word(data, current+40),
-						read_word(data, current+44),
-						read_word(data, current+48),
-						read_word(data, current+52) )
-
-				## The remainder of the chunk is a list of the entry values for that type/configuration
-				type_name = @stringpool_typestrings.values[type_id - 1]				
-				if current_spec.types == nil
-					current_spec.types = ResType.new(header, type_name, type_config, type_entrycount, Array.new())
-				end
-
-				i=0
-				while i < type_entrycount
-					## Ensure a hash exists for each type
-					if current_spec.types.entries[i] == nil
-						current_spec.types.entries[i] = Hash.new()
-					end
-					current_entry = current_spec.types.entries[i]
-
-					## Get the start of the type from the offsets table
-					index_offset = i * 4 + (current+56)
-					start_offset = read_word(data, index_offset)
-					if start_offset != OFFSET_NO_ENTRY
-						## Set the index_offset to the start of the current entry
-						index_offset = current + type_entryoffset + start_offset
-	
-						entry_flags = read_short(data, index_offset+2)
-						entry_key = read_word(data, index_offset+4)
-						entry_data_type = read_byte(data, index_offset+11)
-						entry_data = read_word(data, index_offset+12)
-						
-						# Find the key in our strings index
-						key_name = @stringpool_keystrings.values[entry_key]
-						# Parse the value into a string
-						data_value = nil
-						case type_name
-							when TYPE_STRING, TYPE_DRAWABLE
-								data_value = get_resource_string(entry_data_type, entry_data)
-							when TYPE_COLOR
-								data_value = get_resource_color(entry_data_type, entry_data)
-							when TYPE_DIMENSION
-								data_value = get_resource_dimension(entry_data_type, entry_data)
-							when TYPE_INTEGER
-								data_value = get_resource_integer(entry_data_type, entry_data)
-							when TYPE_BOOLEAN
-								data_value = get_resource_bool(entry_data_type, entry_data)
-							else
-								puts "Complex Resources not yet supported." if DEBUG
-								data_value = entry_data.to_s
-						end
-						current_entry[type_config] = ResTypeEntry.new(entry_flags, key_name, entry_data_type, data_value)
-					end
-					i += 1
-				end
-				
-				current += header.chunk_size
-			else
-				puts "Unknown Chunk Found: #{header.type} #{header.size}" if DEBUG
-				## End Immediately
-				current = data.length
-			end
+			i += 1
 		end
 		
 	end #initalize
@@ -295,17 +180,29 @@ class ApkResources
 	end
 	
 	##
-	# Return array of all the type values in the file
+	# Return hash of all the type values in the file
+	# keyed by package id
 	
 	def get_all_types
-		return @stringpool_typestrings.values
+		types = Hash.new()
+		@packages.each do |key, value|
+			types[key] = value.stringpool_typestrings.values
+		end
+
+		return types
 	end
 	
 	##
-	# Return array of all the key values in the file
+	# Return hash of all the key values in the file
+	# keyed by package id
 	
 	def get_all_keys
-		return @stringpool_keystrings.values
+		keys = Hash.new()
+		@packages.each do |key, value|
+			keys[key] = value.stringpool_keystrings.values
+		end
+
+		return keys
 	end
 
 	##
@@ -328,12 +225,13 @@ class ApkResources
 		res_type = (res_id >> 16) & 0xFF
 		res_index = res_id & 0xFFFF
 
-		if res_package != @package_header.id
+		package_element = @packages[res_package]
+		if package_element == nil
 			# This is not a resource we can parse
 			return nil
 		end
 		
-		res_spec = @type_data[res_type-1]
+		res_spec = package_element.type_data[res_type-1]
 		entry = res_spec.types.entries[res_index]
 		
 		if entry == nil
@@ -389,16 +287,17 @@ class ApkResources
 		res_type = (res_id >> 16) & 0xFF
 		res_index = res_id & 0xFFFF
 
-		if res_package != @package_header.id
+		package_element = @packages[res_package]
+		if package_element == nil
 			# This is not a resource we can parse
 			return nil
 		end
 		
-		res_spec = @type_data[res_type-1]
+		res_spec = package_element.type_data[res_type-1]
 		
 		entries = res_spec.types.entries[res_index]
 		if entries == nil
-			puts "Could not find #{type_name} ResType chunk" if DEBUG
+			puts "Could not find #{res_spec.types.id} ResType chunk" if DEBUG
 			return nil
 		end
 		
@@ -529,6 +428,140 @@ class ApkResources
 		end
 		
 		return StringPool.new(pool_header, pool_string_count, pool_style_count, values)
+	end
+
+	# Parse out a Package Chunk
+	def parse_package(data, offset)
+		header = ChunkHeader.new( read_short(data, offset),
+				read_short(data, offset+2),
+				read_word(data, offset+4) )
+		
+		package_id = read_word(data, offset+8)
+		package_name = read_string(data, offset+12, 256, "UTF-8")
+		package_type_strings = read_word(data, offset+268)
+		package_last_type = read_word(data, offset+272)
+		package_key_strings = read_word(data, offset+276)
+		package_last_key = read_word(data, offset+280)
+		
+		package_header = PackageHeader.new(header, package_id, package_name, package_type_strings, package_key_strings)
+		
+		## typeStrings StringPool
+		startoffset_typestrings = offset + package_type_strings
+		puts "Parse typeStrings StringPool Chunk" if DEBUG
+		stringpool_typestrings = parse_stringpool(data, startoffset_typestrings)
+		
+		## keyStrings StringPool
+		startoffset_keystrings = offset + package_key_strings
+		puts "Parse keyStrings StringPool Chunk" if DEBUG
+		stringpool_keystrings = parse_stringpool(data, startoffset_keystrings)
+		
+		## typeSpec/type Chunks		
+		type_data = Array.new()
+		current_spec = nil
+		
+		current = startoffset_keystrings + stringpool_keystrings.header.chunk_size
+		puts "Parse Type/TypeSpec Chunks" if DEBUG
+		while current < data.length
+			## Parse Header
+			header = ChunkHeader.new( read_short(data, current),
+					read_short(data, current+2),
+					read_word(data, current+4) )
+			## Check Type
+			if header.type == CHUNKTYPE_TYPESPEC
+				typespec_id = read_byte(data, current+8)
+				typespec_entrycount = read_word(data, current+12)
+				
+				## Parse the config flags for each entry
+				typespec_entries = Array.new()
+				i=0
+				while i < typespec_entrycount
+					offset = i * 4 + (current+16)
+					typespec_entries << read_word(data, offset)
+					
+					i += 1
+				end
+				
+				typespec_name = stringpool_typestrings.values[typespec_id - 1]
+				current_spec = ResTypeSpec.new(header, typespec_name, typespec_entrycount, typespec_entries, nil)
+				
+				type_data << current_spec
+				current += header.chunk_size
+			elsif header.type == CHUNKTYPE_TYPE
+				type_id = read_byte(data, current+8)
+				type_entrycount = read_word(data, current+12) 
+				type_entryoffset = read_word(data, current+16)
+
+				## The config flags set for this type chunk
+				## TODO: Vary the size of the config structure based on size to accomodate for new flags
+				config_size = read_word(data, current+20) # Number of bytes in structure
+				type_config = ResTypeConfig.new( read_word(data, current+24),
+						read_word(data, current+28),
+						read_word(data, current+32),
+						read_word(data, current+36 ),
+						read_word(data, current+40),
+						read_word(data, current+44),
+						read_word(data, current+48),
+						read_word(data, current+52) )
+
+				## The remainder of the chunk is a list of the entry values for that type/configuration
+				type_name = stringpool_typestrings.values[type_id - 1]				
+				if current_spec.types == nil
+					current_spec.types = ResType.new(header, type_name, type_config, type_entrycount, Array.new())
+				end
+
+				i=0
+				while i < type_entrycount
+					## Ensure a hash exists for each type
+					if current_spec.types.entries[i] == nil
+						current_spec.types.entries[i] = Hash.new()
+					end
+					current_entry = current_spec.types.entries[i]
+
+					## Get the start of the type from the offsets table
+					index_offset = i * 4 + (current+56)
+					start_offset = read_word(data, index_offset)
+					if start_offset != OFFSET_NO_ENTRY
+						## Set the index_offset to the start of the current entry
+						index_offset = current + type_entryoffset + start_offset
+	
+						entry_flags = read_short(data, index_offset+2)
+						entry_key = read_word(data, index_offset+4)
+						entry_data_type = read_byte(data, index_offset+11)
+						entry_data = read_word(data, index_offset+12)
+						
+						# Find the key in our strings index
+						key_name = stringpool_keystrings.values[entry_key]
+						# Parse the value into a string
+						data_value = nil
+						case type_name
+							when TYPE_STRING, TYPE_DRAWABLE
+								data_value = get_resource_string(entry_data_type, entry_data)
+							when TYPE_COLOR
+								data_value = get_resource_color(entry_data_type, entry_data)
+							when TYPE_DIMENSION
+								data_value = get_resource_dimension(entry_data_type, entry_data)
+							when TYPE_INTEGER
+								data_value = get_resource_integer(entry_data_type, entry_data)
+							when TYPE_BOOLEAN
+								data_value = get_resource_bool(entry_data_type, entry_data)
+							else
+								puts "Complex Resources not yet supported." if DEBUG
+								data_value = entry_data.to_s
+						end
+						current_entry[type_config] = ResTypeEntry.new(entry_flags, key_name, entry_data_type, data_value)
+					end
+					i += 1
+				end
+				
+				current += header.chunk_size
+			else
+				puts "Unknown Chunk Found: #{header.type} #{header.size}" if DEBUG
+				## End Immediately
+				current = data.length
+			end
+		end
+
+		return Package.new(package_header, stringpool_typestrings, stringpool_keystrings, type_data)
 	end
 
 	# Obtain string value for resource id
