@@ -1,5 +1,7 @@
 APK Resource Toolkit
 ====================
+[![Gem Version](https://badge.fury.io/rb/apktools.png)](http://badge.fury.io/rb/apktools)
+
 This repository contains the source code for the 'apktools' ruby gem, a set of utilities for parsing resource data out of Android APK files.
 
 This library only contains utility code to read XML and resource data from an APK.  It does not contain utilities to de-dex or otherwise decompile the sources.
