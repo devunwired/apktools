@@ -151,6 +151,29 @@ associated with a given R.id value</p>
 :size, :chunk_size)</p></dd>
           
         
+          <dt><a name="Package">Package</a></dt>
+          
+          <dd class="description"><p>Structure defining the resource contents for a package chunk</p>
+
+<p><a href="ApkResources.html#Package">Package</a> = Struct.new(:header,
+:stringpool_typestrings, :stringpool_keystrings, :type_data)</p>
+<ul><li>
+<p><tt>package_header</tt> = <a
+href="ApkResources.html#PackageHeader">PackageHeader</a></p>
+</li><li>
+<p><tt>stringpool_typestrings</tt> = <a
+href="ApkResources.html#StringPool">StringPool</a> containing all type
+strings in the package</p>
+</li><li>
+<p><tt>stringpool_keystrings</tt> = <a
+href="ApkResources.html#StringPool">StringPool</a> containing all key
+strings in the package</p>
+</li><li>
+<p><tt>type_data</tt> = Array of <a
+href="ApkResources.html#ResTypeSpec">ResTypeSpec</a> chunks in the package</p>
+</li></ul></dd>
+          
+        
           <dt><a name="PackageHeader">PackageHeader</a></dt>
           
           <dd class="description"><p>Structure defining the data inside of the package chunk</p>
@@ -160,9 +183,11 @@ Struct.new(:header, :id, :name, :type_strings, :key_strings)</p>
 <ul><li>
 <p><tt>header</tt> = <a href="ApkResources.html#ChunkHeader">ChunkHeader</a></p>
 </li><li>
-<p><tt>id</tt> = Package id; usually 0x7F for application resources</p>
+<p><tt>id</tt> = <a href="ApkResources.html#Package">Package</a> id; usually
+0x7F for application resources</p>
 </li><li>
-<p><tt>name</tt> = Package name (e.g. "com.example.application")</p>
+<p><tt>name</tt> = <a href="ApkResources.html#Package">Package</a> name (e.g.
+"com.example.application")</p>
 </li><li>
 <p><tt>type_strings</tt> = Array of the type string values present (e.g.
 "drawable")</p>
@@ -312,18 +337,18 @@ information about all the type and key strings in the package</p>
           </div>
         </div>
         
-        <div id="stringpool_keystrings-attribute-method" class="method-detail">
-          <a name="stringpool_keystrings"></a>
+        <div id="packages-attribute-method" class="method-detail">
+          <a name="packages"></a>
           
           <div class="method-heading attribute-method-heading">
-            <span class="method-name">stringpool_keystrings</span><span
+            <span class="method-name">packages</span><span
               class="attribute-access-type">[R]</span>
           </div>
 
           <div class="method-description">
           
-          <p><a href="ApkResources.html#StringPool">StringPool</a> containing all key
-strings in the package</p>
+          <p>Hash of <a href="ApkResources.html#Package">Package</a> chunks, keyed by
+package id</p>
           
           </div>
         </div>
@@ -340,38 +365,6 @@ strings in the package</p>
           
           <p><a href="ApkResources.html#StringPool">StringPool</a> containing all value
 strings in the package</p>
-          
-          </div>
-        </div>
-        
-        <div id="stringpool_typestrings-attribute-method" class="method-detail">
-          <a name="stringpool_typestrings"></a>
-          
-          <div class="method-heading attribute-method-heading">
-            <span class="method-name">stringpool_typestrings</span><span
-              class="attribute-access-type">[R]</span>
-          </div>
-
-          <div class="method-description">
-          
-          <p><a href="ApkResources.html#StringPool">StringPool</a> containing all type
-strings in the package</p>
-          
-          </div>
-        </div>
-        
-        <div id="type_data-attribute-method" class="method-detail">
-          <a name="type_data"></a>
-          
-          <div class="method-heading attribute-method-heading">
-            <span class="method-name">type_data</span><span
-              class="attribute-access-type">[R]</span>
-          </div>
-
-          <div class="method-description">
-          
-          <p>Array of the <a href="ApkResources.html#ResTypeSpec">ResTypeSpec</a> chunks
-in the package</p>
           
           </div>
         </div>
@@ -407,7 +400,7 @@ specified <tt>apk_file</tt></p>
             
             <div class="method-source-code" id="new-source">
 <pre>
-<span class="ruby-comment"># File lib/apktools/apkresources.rb, line 128</span>
+<span class="ruby-comment"># File lib/apktools/apkresources.rb, line 135</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">initialize</span>(<span class="ruby-identifier">apk_file</span>)
         <span class="ruby-identifier">data</span> = <span class="ruby-keyword">nil</span>            
         <span class="ruby-comment"># Get resources.arsc from the APK file</span>
@@ -424,10 +417,6 @@ specified <tt>apk_file</tt></p>
         <span class="ruby-identifier">header_chunk_size</span> = <span class="ruby-identifier">read_word</span>(<span class="ruby-identifier">data</span>, <span class="ruby-constant">HEADER_START</span><span class="ruby-operator">+</span><span class="ruby-value">4</span>)
         <span class="ruby-identifier">header_package_count</span> = <span class="ruby-identifier">read_word</span>(<span class="ruby-identifier">data</span>, <span class="ruby-constant">HEADER_START</span><span class="ruby-operator">+</span><span class="ruby-value">8</span>)
         <span class="ruby-identifier">puts</span> <span class="ruby-node">&quot;Resource Package Count = #{header_package_count}&quot;</span> <span class="ruby-keyword">if</span> <span class="ruby-constant">DEBUG</span>
-        <span class="ruby-keyword">if</span> <span class="ruby-identifier">header_package_count</span> <span class="ruby-operator">&gt;</span> <span class="ruby-value">1</span>
-                <span class="ruby-identifier">puts</span> <span class="ruby-string">&quot;ApkResources only supports single package resources.&quot;</span>
-                <span class="ruby-identifier">exit</span>(<span class="ruby-value">1</span>)
-        <span class="ruby-keyword">end</span>
         
         <span class="ruby-comment"># Parse the StringPool Chunk</span>
         <span class="ruby-comment">## Header</span>
@@ -439,133 +428,15 @@ specified <tt>apk_file</tt></p>
         <span class="ruby-comment"># Parse the Package Chunk</span>
         <span class="ruby-comment">## Header</span>
         <span class="ruby-identifier">startoffset_package</span> = <span class="ruby-identifier">startoffset_pool</span> <span class="ruby-operator">+</span> <span class="ruby-ivar">@stringpool_main</span>.<span class="ruby-identifier">header</span>.<span class="ruby-identifier">chunk_size</span>
-        <span class="ruby-identifier">header</span> = <span class="ruby-constant">ChunkHeader</span>.<span class="ruby-identifier">new</span>( <span class="ruby-identifier">read_short</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">startoffset_package</span>),
-                        <span class="ruby-identifier">read_short</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">startoffset_package</span><span class="ruby-operator">+</span><span class="ruby-value">2</span>),
-                        <span class="ruby-identifier">read_word</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">startoffset_package</span><span class="ruby-operator">+</span><span class="ruby-value">4</span>) )
-        
-        <span class="ruby-identifier">package_id</span> = <span class="ruby-identifier">read_word</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">startoffset_package</span><span class="ruby-operator">+</span><span class="ruby-value">8</span>)
-        <span class="ruby-identifier">package_name</span> = <span class="ruby-identifier">read_string</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">startoffset_package</span><span class="ruby-operator">+</span><span class="ruby-value">12</span>, <span class="ruby-value">256</span>, <span class="ruby-string">&quot;UTF-8&quot;</span>)
-        <span class="ruby-identifier">package_type_strings</span> = <span class="ruby-identifier">read_word</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">startoffset_package</span><span class="ruby-operator">+</span><span class="ruby-value">268</span>)
-        <span class="ruby-identifier">package_last_type</span> = <span class="ruby-identifier">read_word</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">startoffset_package</span><span class="ruby-operator">+</span><span class="ruby-value">272</span>)
-        <span class="ruby-identifier">package_key_strings</span> = <span class="ruby-identifier">read_word</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">startoffset_package</span><span class="ruby-operator">+</span><span class="ruby-value">276</span>)
-        <span class="ruby-identifier">package_last_key</span> = <span class="ruby-identifier">read_word</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">startoffset_package</span><span class="ruby-operator">+</span><span class="ruby-value">280</span>)
-        
-        <span class="ruby-ivar">@package_header</span> = <span class="ruby-constant">PackageHeader</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">header</span>, <span class="ruby-identifier">package_id</span>, <span class="ruby-identifier">package_name</span>, <span class="ruby-identifier">package_type_strings</span>, <span class="ruby-identifier">package_key_strings</span>)
-        
-        <span class="ruby-comment">## typeStrings StringPool</span>
-        <span class="ruby-identifier">startoffset_typestrings</span> = <span class="ruby-identifier">startoffset_package</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">package_type_strings</span>
-        <span class="ruby-identifier">puts</span> <span class="ruby-string">&quot;Parse typeStrings StringPool Chunk&quot;</span> <span class="ruby-keyword">if</span> <span class="ruby-constant">DEBUG</span>
-        <span class="ruby-ivar">@stringpool_typestrings</span> = <span class="ruby-identifier">parse_stringpool</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">startoffset_typestrings</span>)
-        
-        <span class="ruby-comment">## keyStrings StringPool</span>
-        <span class="ruby-identifier">startoffset_keystrings</span> = <span class="ruby-identifier">startoffset_package</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">package_key_strings</span>
-        <span class="ruby-identifier">puts</span> <span class="ruby-string">&quot;Parse keyStrings StringPool Chunk&quot;</span> <span class="ruby-keyword">if</span> <span class="ruby-constant">DEBUG</span>
-        <span class="ruby-ivar">@stringpool_keystrings</span> = <span class="ruby-identifier">parse_stringpool</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">startoffset_keystrings</span>)
-        
-        <span class="ruby-comment">## typeSpec/type Chunks               </span>
-        <span class="ruby-ivar">@type_data</span> = <span class="ruby-constant">Array</span>.<span class="ruby-identifier">new</span>()
-        <span class="ruby-identifier">current_spec</span> = <span class="ruby-keyword">nil</span>
-        
-        <span class="ruby-identifier">current</span> = <span class="ruby-identifier">startoffset_keystrings</span> <span class="ruby-operator">+</span> <span class="ruby-ivar">@stringpool_keystrings</span>.<span class="ruby-identifier">header</span>.<span class="ruby-identifier">chunk_size</span>
-        <span class="ruby-identifier">puts</span> <span class="ruby-string">&quot;Parse Type/TypeSpec Chunks&quot;</span> <span class="ruby-keyword">if</span> <span class="ruby-constant">DEBUG</span>
-        <span class="ruby-keyword">while</span> <span class="ruby-identifier">current</span> <span class="ruby-operator">&lt;</span> <span class="ruby-identifier">data</span>.<span class="ruby-identifier">length</span>
-                <span class="ruby-comment">## Parse Header</span>
-                <span class="ruby-identifier">header</span> = <span class="ruby-constant">ChunkHeader</span>.<span class="ruby-identifier">new</span>( <span class="ruby-identifier">read_short</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">current</span>),
-                                <span class="ruby-identifier">read_short</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">current</span><span class="ruby-operator">+</span><span class="ruby-value">2</span>),
-                                <span class="ruby-identifier">read_word</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">current</span><span class="ruby-operator">+</span><span class="ruby-value">4</span>) )
-                <span class="ruby-comment">## Check Type</span>
-                <span class="ruby-keyword">if</span> <span class="ruby-identifier">header</span>.<span class="ruby-identifier">type</span> <span class="ruby-operator">==</span> <span class="ruby-constant">CHUNKTYPE_TYPESPEC</span>
-                        <span class="ruby-identifier">typespec_id</span> = <span class="ruby-identifier">read_byte</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">current</span><span class="ruby-operator">+</span><span class="ruby-value">8</span>)
-                        <span class="ruby-identifier">typespec_entrycount</span> = <span class="ruby-identifier">read_word</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">current</span><span class="ruby-operator">+</span><span class="ruby-value">12</span>)
-                        
-                        <span class="ruby-comment">## Parse the config flags for each entry</span>
-                        <span class="ruby-identifier">typespec_entries</span> = <span class="ruby-constant">Array</span>.<span class="ruby-identifier">new</span>()
-                        <span class="ruby-identifier">i</span>=<span class="ruby-value">0</span>
-                        <span class="ruby-keyword">while</span> <span class="ruby-identifier">i</span> <span class="ruby-operator">&lt;</span> <span class="ruby-identifier">typespec_entrycount</span>
-                                <span class="ruby-identifier">offset</span> = <span class="ruby-identifier">i</span> * <span class="ruby-value">4</span> <span class="ruby-operator">+</span> (<span class="ruby-identifier">current</span><span class="ruby-operator">+</span><span class="ruby-value">16</span>)
-                                <span class="ruby-identifier">typespec_entries</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">read_word</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">offset</span>)
-                                
-                                <span class="ruby-identifier">i</span> <span class="ruby-operator">+=</span> <span class="ruby-value">1</span>
-                        <span class="ruby-keyword">end</span>
-                        
-                        <span class="ruby-identifier">typespec_name</span> = <span class="ruby-ivar">@stringpool_typestrings</span>.<span class="ruby-identifier">values</span>[<span class="ruby-identifier">typespec_id</span> <span class="ruby-operator">-</span> <span class="ruby-value">1</span>]
-                        <span class="ruby-identifier">current_spec</span> = <span class="ruby-constant">ResTypeSpec</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">header</span>, <span class="ruby-identifier">typespec_name</span>, <span class="ruby-identifier">typespec_entrycount</span>, <span class="ruby-identifier">typespec_entries</span>, <span class="ruby-keyword">nil</span>)
-                        
-                        <span class="ruby-ivar">@type_data</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">current_spec</span>
-                        <span class="ruby-identifier">current</span> <span class="ruby-operator">+=</span> <span class="ruby-identifier">header</span>.<span class="ruby-identifier">chunk_size</span>
-                <span class="ruby-keyword">elsif</span> <span class="ruby-identifier">header</span>.<span class="ruby-identifier">type</span> <span class="ruby-operator">==</span> <span class="ruby-constant">CHUNKTYPE_TYPE</span>
-                        <span class="ruby-identifier">type_id</span> = <span class="ruby-identifier">read_byte</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">current</span><span class="ruby-operator">+</span><span class="ruby-value">8</span>)
-                        <span class="ruby-identifier">type_entrycount</span> = <span class="ruby-identifier">read_word</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">current</span><span class="ruby-operator">+</span><span class="ruby-value">12</span>) 
-                        <span class="ruby-identifier">type_entryoffset</span> = <span class="ruby-identifier">read_word</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">current</span><span class="ruby-operator">+</span><span class="ruby-value">16</span>)
+        <span class="ruby-ivar">@packages</span> = <span class="ruby-constant">Hash</span>.<span class="ruby-identifier">new</span>()
+        <span class="ruby-identifier">i</span> = <span class="ruby-value">0</span>
+        <span class="ruby-keyword">while</span> <span class="ruby-identifier">i</span> <span class="ruby-operator">&lt;</span> <span class="ruby-identifier">header_package_count</span>
+                <span class="ruby-identifier">package_element</span> = <span class="ruby-identifier">parse_package</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">startoffset_package</span>)
+                <span class="ruby-identifier">puts</span> <span class="ruby-node">&quot;Package #{package_element.package_header.id}&quot;</span> <span class="ruby-keyword">if</span> <span class="ruby-constant">DEBUG</span>
+                <span class="ruby-identifier">startoffset_package</span> = <span class="ruby-identifier">startoffset_package</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">package_element</span>.<span class="ruby-identifier">package_header</span>.<span class="ruby-identifier">header</span>.<span class="ruby-identifier">chunk_size</span>
+                <span class="ruby-ivar">@packages</span>[<span class="ruby-identifier">package_element</span>.<span class="ruby-identifier">package_header</span>.<span class="ruby-identifier">id</span>] = <span class="ruby-identifier">package_element</span>
 
-                        <span class="ruby-comment">## The config flags set for this type chunk</span>
-                        <span class="ruby-comment">## TODO: Vary the size of the config structure based on size to accomodate for new flags</span>
-                        <span class="ruby-identifier">config_size</span> = <span class="ruby-identifier">read_word</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">current</span><span class="ruby-operator">+</span><span class="ruby-value">20</span>) <span class="ruby-comment"># Number of bytes in structure</span>
-                        <span class="ruby-identifier">type_config</span> = <span class="ruby-constant">ResTypeConfig</span>.<span class="ruby-identifier">new</span>( <span class="ruby-identifier">read_word</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">current</span><span class="ruby-operator">+</span><span class="ruby-value">24</span>),
-                                        <span class="ruby-identifier">read_word</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">current</span><span class="ruby-operator">+</span><span class="ruby-value">28</span>),
-                                        <span class="ruby-identifier">read_word</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">current</span><span class="ruby-operator">+</span><span class="ruby-value">32</span>),
-                                        <span class="ruby-identifier">read_word</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">current</span><span class="ruby-operator">+</span><span class="ruby-value">36</span> ),
-                                        <span class="ruby-identifier">read_word</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">current</span><span class="ruby-operator">+</span><span class="ruby-value">40</span>),
-                                        <span class="ruby-identifier">read_word</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">current</span><span class="ruby-operator">+</span><span class="ruby-value">44</span>),
-                                        <span class="ruby-identifier">read_word</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">current</span><span class="ruby-operator">+</span><span class="ruby-value">48</span>),
-                                        <span class="ruby-identifier">read_word</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">current</span><span class="ruby-operator">+</span><span class="ruby-value">52</span>) )
-
-                        <span class="ruby-comment">## The remainder of the chunk is a list of the entry values for that type/configuration</span>
-                        <span class="ruby-identifier">type_name</span> = <span class="ruby-ivar">@stringpool_typestrings</span>.<span class="ruby-identifier">values</span>[<span class="ruby-identifier">type_id</span> <span class="ruby-operator">-</span> <span class="ruby-value">1</span>]                             
-                        <span class="ruby-keyword">if</span> <span class="ruby-identifier">current_spec</span>.<span class="ruby-identifier">types</span> <span class="ruby-operator">==</span> <span class="ruby-keyword">nil</span>
-                                <span class="ruby-identifier">current_spec</span>.<span class="ruby-identifier">types</span> = <span class="ruby-constant">ResType</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">header</span>, <span class="ruby-identifier">type_name</span>, <span class="ruby-identifier">type_config</span>, <span class="ruby-identifier">type_entrycount</span>, <span class="ruby-constant">Array</span>.<span class="ruby-identifier">new</span>())
-                        <span class="ruby-keyword">end</span>
-
-                        <span class="ruby-identifier">i</span>=<span class="ruby-value">0</span>
-                        <span class="ruby-keyword">while</span> <span class="ruby-identifier">i</span> <span class="ruby-operator">&lt;</span> <span class="ruby-identifier">type_entrycount</span>
-                                <span class="ruby-comment">## Ensure a hash exists for each type</span>
-                                <span class="ruby-keyword">if</span> <span class="ruby-identifier">current_spec</span>.<span class="ruby-identifier">types</span>.<span class="ruby-identifier">entries</span>[<span class="ruby-identifier">i</span>] <span class="ruby-operator">==</span> <span class="ruby-keyword">nil</span>
-                                        <span class="ruby-identifier">current_spec</span>.<span class="ruby-identifier">types</span>.<span class="ruby-identifier">entries</span>[<span class="ruby-identifier">i</span>] = <span class="ruby-constant">Hash</span>.<span class="ruby-identifier">new</span>()
-                                <span class="ruby-keyword">end</span>
-                                <span class="ruby-identifier">current_entry</span> = <span class="ruby-identifier">current_spec</span>.<span class="ruby-identifier">types</span>.<span class="ruby-identifier">entries</span>[<span class="ruby-identifier">i</span>]
-
-                                <span class="ruby-comment">## Get the start of the type from the offsets table</span>
-                                <span class="ruby-identifier">index_offset</span> = <span class="ruby-identifier">i</span> * <span class="ruby-value">4</span> <span class="ruby-operator">+</span> (<span class="ruby-identifier">current</span><span class="ruby-operator">+</span><span class="ruby-value">56</span>)
-                                <span class="ruby-identifier">start_offset</span> = <span class="ruby-identifier">read_word</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">index_offset</span>)
-                                <span class="ruby-keyword">if</span> <span class="ruby-identifier">start_offset</span> <span class="ruby-operator">!=</span> <span class="ruby-constant">OFFSET_NO_ENTRY</span>
-                                        <span class="ruby-comment">## Set the index_offset to the start of the current entry</span>
-                                        <span class="ruby-identifier">index_offset</span> = <span class="ruby-identifier">current</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">type_entryoffset</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">start_offset</span>
-
-                                        <span class="ruby-identifier">entry_flags</span> = <span class="ruby-identifier">read_short</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">index_offset</span><span class="ruby-operator">+</span><span class="ruby-value">2</span>)
-                                        <span class="ruby-identifier">entry_key</span> = <span class="ruby-identifier">read_word</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">index_offset</span><span class="ruby-operator">+</span><span class="ruby-value">4</span>)
-                                        <span class="ruby-identifier">entry_data_type</span> = <span class="ruby-identifier">read_byte</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">index_offset</span><span class="ruby-operator">+</span><span class="ruby-value">11</span>)
-                                        <span class="ruby-identifier">entry_data</span> = <span class="ruby-identifier">read_word</span>(<span class="ruby-identifier">data</span>, <span class="ruby-identifier">index_offset</span><span class="ruby-operator">+</span><span class="ruby-value">12</span>)
-                                        
-                                        <span class="ruby-comment"># Find the key in our strings index</span>
-                                        <span class="ruby-identifier">key_name</span> = <span class="ruby-ivar">@stringpool_keystrings</span>.<span class="ruby-identifier">values</span>[<span class="ruby-identifier">entry_key</span>]
-                                        <span class="ruby-comment"># Parse the value into a string</span>
-                                        <span class="ruby-identifier">data_value</span> = <span class="ruby-keyword">nil</span>
-                                        <span class="ruby-keyword">case</span> <span class="ruby-identifier">type_name</span>
-                                                <span class="ruby-keyword">when</span> <span class="ruby-constant">TYPE_STRING</span>, <span class="ruby-constant">TYPE_DRAWABLE</span>
-                                                        <span class="ruby-identifier">data_value</span> = <span class="ruby-identifier">get_resource_string</span>(<span class="ruby-identifier">entry_data_type</span>, <span class="ruby-identifier">entry_data</span>)
-                                                <span class="ruby-keyword">when</span> <span class="ruby-constant">TYPE_COLOR</span>
-                                                        <span class="ruby-identifier">data_value</span> = <span class="ruby-identifier">get_resource_color</span>(<span class="ruby-identifier">entry_data_type</span>, <span class="ruby-identifier">entry_data</span>)
-                                                <span class="ruby-keyword">when</span> <span class="ruby-constant">TYPE_DIMENSION</span>
-                                                        <span class="ruby-identifier">data_value</span> = <span class="ruby-identifier">get_resource_dimension</span>(<span class="ruby-identifier">entry_data_type</span>, <span class="ruby-identifier">entry_data</span>)
-                                                <span class="ruby-keyword">when</span> <span class="ruby-constant">TYPE_INTEGER</span>
-                                                        <span class="ruby-identifier">data_value</span> = <span class="ruby-identifier">get_resource_integer</span>(<span class="ruby-identifier">entry_data_type</span>, <span class="ruby-identifier">entry_data</span>)
-                                                <span class="ruby-keyword">when</span> <span class="ruby-constant">TYPE_BOOLEAN</span>
-                                                        <span class="ruby-identifier">data_value</span> = <span class="ruby-identifier">get_resource_bool</span>(<span class="ruby-identifier">entry_data_type</span>, <span class="ruby-identifier">entry_data</span>)
-                                                <span class="ruby-keyword">else</span>
-                                                        <span class="ruby-identifier">puts</span> <span class="ruby-string">&quot;Complex Resources not yet supported.&quot;</span> <span class="ruby-keyword">if</span> <span class="ruby-constant">DEBUG</span>
-                                                        <span class="ruby-identifier">data_value</span> = <span class="ruby-identifier">entry_data</span>.<span class="ruby-identifier">to_s</span>
-                                        <span class="ruby-keyword">end</span>
-                                        <span class="ruby-identifier">current_entry</span>[<span class="ruby-identifier">type_config</span>] = <span class="ruby-constant">ResTypeEntry</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">entry_flags</span>, <span class="ruby-identifier">key_name</span>, <span class="ruby-identifier">entry_data_type</span>, <span class="ruby-identifier">data_value</span>)
-                                <span class="ruby-keyword">end</span>
-                                <span class="ruby-identifier">i</span> <span class="ruby-operator">+=</span> <span class="ruby-value">1</span>
-                        <span class="ruby-keyword">end</span>
-                        
-                        <span class="ruby-identifier">current</span> <span class="ruby-operator">+=</span> <span class="ruby-identifier">header</span>.<span class="ruby-identifier">chunk_size</span>
-                <span class="ruby-keyword">else</span>
-                        <span class="ruby-identifier">puts</span> <span class="ruby-node">&quot;Unknown Chunk Found: #{header.type} #{header.size}&quot;</span> <span class="ruby-keyword">if</span> <span class="ruby-constant">DEBUG</span>
-                        <span class="ruby-comment">## End Immediately</span>
-                        <span class="ruby-identifier">current</span> = <span class="ruby-identifier">data</span>.<span class="ruby-identifier">length</span>
-                <span class="ruby-keyword">end</span>
+                <span class="ruby-identifier">i</span> <span class="ruby-operator">+=</span> <span class="ruby-value">1</span>
         <span class="ruby-keyword">end</span>
         
 <span class="ruby-keyword">end</span></pre>
@@ -598,15 +469,20 @@ specified <tt>apk_file</tt></p>
 
           <div class="method-description">
             
-            <p>Return array of all the key values in the file</p>
+            <p>Return hash of all the key values in the file keyed by package id</p>
             
 
             
             <div class="method-source-code" id="get_all_keys-source">
 <pre>
-<span class="ruby-comment"># File lib/apktools/apkresources.rb, line 307</span>
+<span class="ruby-comment"># File lib/apktools/apkresources.rb, line 199</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">get_all_keys</span>
-        <span class="ruby-keyword">return</span> <span class="ruby-ivar">@stringpool_keystrings</span>.<span class="ruby-identifier">values</span>
+        <span class="ruby-identifier">keys</span> = <span class="ruby-constant">Hash</span>.<span class="ruby-identifier">new</span>()
+        <span class="ruby-ivar">@packages</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">key</span>, <span class="ruby-identifier">value</span><span class="ruby-operator">|</span>
+                <span class="ruby-identifier">keys</span>[<span class="ruby-identifier">key</span>] = <span class="ruby-identifier">value</span>.<span class="ruby-identifier">stringpool_keystrings</span>.<span class="ruby-identifier">values</span>
+        <span class="ruby-keyword">end</span>
+
+        <span class="ruby-keyword">return</span> <span class="ruby-identifier">keys</span>
 <span class="ruby-keyword">end</span></pre>
             </div><!-- get_all_keys-source -->
             
@@ -637,7 +513,7 @@ specified <tt>apk_file</tt></p>
             
             <div class="method-source-code" id="get_all_strings-source">
 <pre>
-<span class="ruby-comment"># File lib/apktools/apkresources.rb, line 293</span>
+<span class="ruby-comment"># File lib/apktools/apkresources.rb, line 178</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">get_all_strings</span>
         <span class="ruby-keyword">return</span> <span class="ruby-ivar">@stringpool_main</span>.<span class="ruby-identifier">values</span>
 <span class="ruby-keyword">end</span></pre>
@@ -664,15 +540,20 @@ specified <tt>apk_file</tt></p>
 
           <div class="method-description">
             
-            <p>Return array of all the type values in the file</p>
+            <p>Return hash of all the type values in the file keyed by package id</p>
             
 
             
             <div class="method-source-code" id="get_all_types-source">
 <pre>
-<span class="ruby-comment"># File lib/apktools/apkresources.rb, line 300</span>
+<span class="ruby-comment"># File lib/apktools/apkresources.rb, line 186</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">get_all_types</span>
-        <span class="ruby-keyword">return</span> <span class="ruby-ivar">@stringpool_typestrings</span>.<span class="ruby-identifier">values</span>
+        <span class="ruby-identifier">types</span> = <span class="ruby-constant">Hash</span>.<span class="ruby-identifier">new</span>()
+        <span class="ruby-ivar">@packages</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">key</span>, <span class="ruby-identifier">value</span><span class="ruby-operator">|</span>
+                <span class="ruby-identifier">types</span>[<span class="ruby-identifier">key</span>] = <span class="ruby-identifier">value</span>.<span class="ruby-identifier">stringpool_typestrings</span>.<span class="ruby-identifier">values</span>
+        <span class="ruby-keyword">end</span>
+
+        <span class="ruby-keyword">return</span> <span class="ruby-identifier">types</span>
 <span class="ruby-keyword">end</span></pre>
             </div><!-- get_all_types-source -->
             
@@ -710,12 +591,20 @@ nil if no default exists</p>
             
             <div class="method-source-code" id="get_default_resource_value-source">
 <pre>
-<span class="ruby-comment"># File lib/apktools/apkresources.rb, line 357</span>
+<span class="ruby-comment"># File lib/apktools/apkresources.rb, line 260</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">get_default_resource_value</span>(<span class="ruby-identifier">res_id</span>)
-        <span class="ruby-identifier">entries</span> = <span class="ruby-identifier">get_resource_value</span>(<span class="ruby-identifier">res_id</span>)
-        <span class="ruby-identifier">default</span> = <span class="ruby-constant">ResTypeConfig</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value">0</span>, <span class="ruby-value">0</span>, <span class="ruby-value">0</span>, <span class="ruby-value">0</span>, <span class="ruby-value">0</span>, <span class="ruby-value">0</span>, <span class="ruby-value">0</span>, <span class="ruby-value">0</span>)
+        <span class="ruby-keyword">if</span> <span class="ruby-identifier">res_id</span>.<span class="ruby-identifier">is_a?</span> <span class="ruby-constant">String</span>
+                <span class="ruby-identifier">res_id</span> = <span class="ruby-identifier">res_id</span>.<span class="ruby-identifier">hex</span>
+        <span class="ruby-keyword">end</span>
         
-        <span class="ruby-keyword">return</span> <span class="ruby-identifier">entries</span>[<span class="ruby-identifier">default</span>]
+        <span class="ruby-identifier">entries</span> = <span class="ruby-identifier">get_resource_value</span>(<span class="ruby-identifier">res_id</span>)
+        <span class="ruby-keyword">if</span> <span class="ruby-identifier">entries</span> <span class="ruby-operator">!=</span> <span class="ruby-keyword">nil</span>
+                <span class="ruby-identifier">default</span> = <span class="ruby-constant">ResTypeConfig</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value">0</span>, <span class="ruby-value">0</span>, <span class="ruby-value">0</span>, <span class="ruby-value">0</span>, <span class="ruby-value">0</span>, <span class="ruby-value">0</span>, <span class="ruby-value">0</span>, <span class="ruby-value">0</span>)
+                <span class="ruby-identifier">default_entry</span> = <span class="ruby-identifier">entries</span>[<span class="ruby-identifier">default</span>]
+                <span class="ruby-keyword">return</span> <span class="ruby-identifier">default_entry</span>
+        <span class="ruby-keyword">else</span>
+                <span class="ruby-keyword">return</span> <span class="ruby-keyword">nil</span>
+        <span class="ruby-keyword">end</span>
 <span class="ruby-keyword">end</span></pre>
             </div><!-- get_default_resource_value-source -->
             
@@ -747,13 +636,14 @@ nil if no default exists</p>
 
 <p>If xml_format is true, return value will be @&lt;type&gt;/&lt;key&gt; If
 xml_format is false or missing, return value will be
-R.&lt;type&gt;.&lt;key&gt;</p>
+R.&lt;type&gt;.&lt;key&gt; If the resource id does not exist, return value
+will be nil</p>
             
 
             
             <div class="method-source-code" id="get_resource_key-source">
 <pre>
-<span class="ruby-comment"># File lib/apktools/apkresources.rb, line 320</span>
+<span class="ruby-comment"># File lib/apktools/apkresources.rb, line 218</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">get_resource_key</span>(<span class="ruby-identifier">res_id</span>, <span class="ruby-identifier">xml_format</span>=<span class="ruby-keyword">false</span>)
         <span class="ruby-keyword">if</span> <span class="ruby-identifier">res_id</span>.<span class="ruby-identifier">is_a?</span> <span class="ruby-constant">String</span>
                 <span class="ruby-identifier">res_id</span> = <span class="ruby-identifier">res_id</span>.<span class="ruby-identifier">hex</span>
@@ -764,17 +654,22 @@ R.&lt;type&gt;.&lt;key&gt;</p>
         <span class="ruby-identifier">res_type</span> = (<span class="ruby-identifier">res_id</span> <span class="ruby-operator">&gt;&gt;</span> <span class="ruby-value">16</span>) &amp; <span class="ruby-value">0xFF</span>
         <span class="ruby-identifier">res_index</span> = <span class="ruby-identifier">res_id</span> &amp; <span class="ruby-value">0xFFFF</span>
 
-        <span class="ruby-keyword">if</span> <span class="ruby-identifier">res_package</span> <span class="ruby-operator">!=</span> <span class="ruby-ivar">@package_header</span>.<span class="ruby-identifier">id</span>
+        <span class="ruby-identifier">package_element</span> = <span class="ruby-ivar">@packages</span>[<span class="ruby-identifier">res_package</span>]
+        <span class="ruby-keyword">if</span> <span class="ruby-identifier">package_element</span> <span class="ruby-operator">==</span> <span class="ruby-keyword">nil</span>
                 <span class="ruby-comment"># This is not a resource we can parse</span>
-                <span class="ruby-keyword">return</span> <span class="ruby-identifier">res_id_to_s</span>(<span class="ruby-identifier">res_id</span>)
+                <span class="ruby-keyword">return</span> <span class="ruby-keyword">nil</span>
         <span class="ruby-keyword">end</span>
         
-        <span class="ruby-identifier">res_spec</span> = <span class="ruby-ivar">@type_data</span>[<span class="ruby-identifier">res_type</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>]
-        <span class="ruby-identifier">entry</span> = <span class="ruby-identifier">res_spec</span>.<span class="ruby-identifier">types</span>.<span class="ruby-identifier">entries</span>[<span class="ruby-identifier">res_index</span>]
-        
+        <span class="ruby-identifier">res_spec</span> = <span class="ruby-identifier">package_element</span>.<span class="ruby-identifier">type_data</span>[<span class="ruby-identifier">res_type</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>]
+        <span class="ruby-keyword">if</span> <span class="ruby-identifier">res_spec</span> <span class="ruby-operator">==</span> <span class="ruby-keyword">nil</span>
+                <span class="ruby-identifier">puts</span> <span class="ruby-node">&quot;Could not find ResTypeSpec for #{res_package} #{res_type}&quot;</span> <span class="ruby-keyword">if</span> <span class="ruby-constant">DEBUG</span>
+                <span class="ruby-keyword">return</span> <span class="ruby-keyword">nil</span>
+        <span class="ruby-keyword">end</span>
+
+        <span class="ruby-identifier">entry</span> = <span class="ruby-identifier">res_spec</span>.<span class="ruby-identifier">types</span>.<span class="ruby-identifier">entries</span>[<span class="ruby-identifier">res_index</span>]             
         <span class="ruby-keyword">if</span> <span class="ruby-identifier">entry</span> <span class="ruby-operator">==</span> <span class="ruby-keyword">nil</span>
                 <span class="ruby-comment"># There is no entry in our table for this resource</span>
-                <span class="ruby-keyword">return</span> <span class="ruby-identifier">res_id_to_s</span>(<span class="ruby-identifier">res_id</span>)
+                <span class="ruby-keyword">return</span> <span class="ruby-keyword">nil</span>
         <span class="ruby-keyword">end</span>
         
         <span class="ruby-keyword">if</span> <span class="ruby-identifier">xml_format</span>
@@ -813,13 +708,14 @@ defined in an unqualified directory.</p>
 0x7F060001)</p>
 
 <p>Returns: Hash of all entries matching this id, keyed by their matching <a
-href="ApkResources.html#ResTypeConfig">ResTypeConfig</a></p>
+href="ApkResources.html#ResTypeConfig">ResTypeConfig</a> or nil if the
+resource id cannot be found.</p>
             
 
             
             <div class="method-source-code" id="get_resource_value-source">
 <pre>
-<span class="ruby-comment"># File lib/apktools/apkresources.rb, line 372</span>
+<span class="ruby-comment"># File lib/apktools/apkresources.rb, line 284</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">get_resource_value</span>(<span class="ruby-identifier">res_id</span>)
         <span class="ruby-keyword">if</span> <span class="ruby-identifier">res_id</span>.<span class="ruby-identifier">is_a?</span> <span class="ruby-constant">String</span>
                 <span class="ruby-identifier">res_id</span> = <span class="ruby-identifier">res_id</span>.<span class="ruby-identifier">hex</span>
@@ -830,17 +726,22 @@ href="ApkResources.html#ResTypeConfig">ResTypeConfig</a></p>
         <span class="ruby-identifier">res_type</span> = (<span class="ruby-identifier">res_id</span> <span class="ruby-operator">&gt;&gt;</span> <span class="ruby-value">16</span>) &amp; <span class="ruby-value">0xFF</span>
         <span class="ruby-identifier">res_index</span> = <span class="ruby-identifier">res_id</span> &amp; <span class="ruby-value">0xFFFF</span>
 
-        <span class="ruby-keyword">if</span> <span class="ruby-identifier">res_package</span> <span class="ruby-operator">!=</span> <span class="ruby-ivar">@package_header</span>.<span class="ruby-identifier">id</span>
+        <span class="ruby-identifier">package_element</span> = <span class="ruby-ivar">@packages</span>[<span class="ruby-identifier">res_package</span>]
+        <span class="ruby-keyword">if</span> <span class="ruby-identifier">package_element</span> <span class="ruby-operator">==</span> <span class="ruby-keyword">nil</span>
                 <span class="ruby-comment"># This is not a resource we can parse</span>
-                <span class="ruby-keyword">return</span> <span class="ruby-identifier">res_id_to_s</span>(<span class="ruby-identifier">res_id</span>)
+                <span class="ruby-keyword">return</span> <span class="ruby-keyword">nil</span>
         <span class="ruby-keyword">end</span>
         
-        <span class="ruby-identifier">res_spec</span> = <span class="ruby-ivar">@type_data</span>[<span class="ruby-identifier">res_type</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>]
-        
+        <span class="ruby-identifier">res_spec</span> = <span class="ruby-identifier">package_element</span>.<span class="ruby-identifier">type_data</span>[<span class="ruby-identifier">res_type</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>]
+        <span class="ruby-keyword">if</span> <span class="ruby-identifier">res_spec</span> <span class="ruby-operator">==</span> <span class="ruby-keyword">nil</span>
+                <span class="ruby-identifier">puts</span> <span class="ruby-node">&quot;Could not find ResTypeSpec for #{res_package} #{res_type}&quot;</span> <span class="ruby-keyword">if</span> <span class="ruby-constant">DEBUG</span>
+                <span class="ruby-keyword">return</span> <span class="ruby-keyword">nil</span>
+        <span class="ruby-keyword">end</span>
+
         <span class="ruby-identifier">entries</span> = <span class="ruby-identifier">res_spec</span>.<span class="ruby-identifier">types</span>.<span class="ruby-identifier">entries</span>[<span class="ruby-identifier">res_index</span>]
         <span class="ruby-keyword">if</span> <span class="ruby-identifier">entries</span> <span class="ruby-operator">==</span> <span class="ruby-keyword">nil</span>
-                <span class="ruby-identifier">puts</span> <span class="ruby-node">&quot;Could not find #{type_name} ResType chunk&quot;</span> <span class="ruby-keyword">if</span> <span class="ruby-constant">DEBUG</span>
-                <span class="ruby-keyword">return</span> <span class="ruby-identifier">res_id_to_s</span>(<span class="ruby-identifier">res_id</span>)
+                <span class="ruby-identifier">puts</span> <span class="ruby-node">&quot;Could not find #{res_spec.types.id} ResType chunk&quot;</span> <span class="ruby-keyword">if</span> <span class="ruby-constant">DEBUG</span>
+                <span class="ruby-keyword">return</span> <span class="ruby-keyword">nil</span>
         <span class="ruby-keyword">end</span>
         
         <span class="ruby-keyword">return</span> <span class="ruby-identifier">entries</span>

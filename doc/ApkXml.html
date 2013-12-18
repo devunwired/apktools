@@ -493,13 +493,21 @@ to their default value</p>
                                 <span class="ruby-identifier">attr_value</span> = <span class="ruby-keyword">nil</span>
                                 <span class="ruby-keyword">if</span> <span class="ruby-identifier">attr_raw</span> <span class="ruby-operator">!=</span> <span class="ruby-keyword">nil</span> <span class="ruby-comment"># Use raw value</span>
                                         <span class="ruby-identifier">attr_value</span> = <span class="ruby-identifier">attr_raw</span>
-                                <span class="ruby-keyword">elsif</span> <span class="ruby-identifier">entry</span>.<span class="ruby-identifier">data_type</span> <span class="ruby-operator">==</span> <span class="ruby-value">1</span>
+                                <span class="ruby-keyword">elsif</span> <span class="ruby-identifier">entry</span>.<span class="ruby-identifier">data_type</span> <span class="ruby-operator">==</span> <span class="ruby-value">1</span> <span class="ruby-comment"># Value is a references to a resource</span>
                                         <span class="ruby-comment"># Find the resource</span>
                                         <span class="ruby-identifier">default_res</span> = <span class="ruby-identifier">apk_resources</span>.<span class="ruby-identifier">get_default_resource_value</span>(<span class="ruby-identifier">entry</span>.<span class="ruby-identifier">data</span>)
                                         <span class="ruby-keyword">if</span> <span class="ruby-identifier">resolve_resources</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">default_res</span> <span class="ruby-operator">!=</span> <span class="ruby-keyword">nil</span>
+                                                <span class="ruby-comment"># Use the default resource value</span>
                                                 <span class="ruby-identifier">attr_value</span> = <span class="ruby-identifier">default_res</span>.<span class="ruby-identifier">data</span>
                                         <span class="ruby-keyword">else</span>
-                                                <span class="ruby-identifier">attr_value</span> = <span class="ruby-identifier">apk_resources</span>.<span class="ruby-identifier">get_resource_key</span>(<span class="ruby-identifier">entry</span>.<span class="ruby-identifier">data</span>, <span class="ruby-keyword">true</span>)
+                                                <span class="ruby-identifier">key_value</span> = <span class="ruby-identifier">apk_resources</span>.<span class="ruby-identifier">get_resource_key</span>(<span class="ruby-identifier">entry</span>.<span class="ruby-identifier">data</span>, <span class="ruby-keyword">true</span>)
+                                                <span class="ruby-keyword">if</span> <span class="ruby-identifier">key_value</span> <span class="ruby-operator">!=</span> <span class="ruby-keyword">nil</span>
+                                                        <span class="ruby-comment"># Use the key string</span>
+                                                        <span class="ruby-identifier">attr_value</span> = <span class="ruby-identifier">key_value</span>
+                                                <span class="ruby-keyword">else</span>
+                                                        <span class="ruby-comment">#No key found, use raw id marked as a resource</span>
+                                                        <span class="ruby-identifier">attr_value</span> = <span class="ruby-node">&quot;res:0x#{entry.data.to_s(16)}&quot;</span>
+                                                <span class="ruby-keyword">end</span>
                                         <span class="ruby-keyword">end</span>
                                 <span class="ruby-keyword">else</span> <span class="ruby-comment"># Value is a constant</span>
                                         <span class="ruby-identifier">attr_value</span> = <span class="ruby-node">&quot;0x#{entry.data.to_s(16)}&quot;</span>
