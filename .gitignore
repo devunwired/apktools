@@ -3,3 +3,5 @@
 
 #Build output
 *.gem
+
+.idea/

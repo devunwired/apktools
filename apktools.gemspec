@@ -20,15 +20,20 @@ Gem::Specification.new do |s|
   s.name        = 'apktools'
   s.version     = '0.6.0'
   s.date        = '2013-12-17'
-  s.summary     = "APKTools"
-  s.description = "Library to assist reading resource data out of Android APKs"
-  s.authors     = ["Dave Smith"]
+  s.summary     = 'APKTools'
+  s.description = 'Library to assist reading resource data out of Android APKs'
+  s.authors     = ['Dave Smith']
   s.email       = 'dsmith@doubleencore.com'
-  s.files       = ["lib/apktools/apkresources.rb", "lib/apktools/apkxml.rb", "lib/apktools/resconfiguration.rb"]
+  s.files       = [
+      'lib/apktools/apkresources.rb',
+      'lib/apktools/apkxml.rb',
+      'lib/apktools/resconfiguration.rb',
+      'lib/apktools.rb'
+  ]
   s.homepage    = 'http://github.com/devunwired/apktools'
   s.license     = 'MIT'
   
   s.executables << 'get_app_version.rb'
   s.executables << 'read_manifest.rb'
-  s.add_runtime_dependency "rubyzip"
+  s.add_runtime_dependency 'rubyzip', '<1.0.0'
 end
