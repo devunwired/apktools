@@ -65,7 +65,7 @@ For example, let's look at an AndroidManifest.xml that originally looks like thi
             </intent-filter>
         </activity>
     </application>
-</manifest> 
+</manifest>
 ```
 
 The parsed result would return like this with `resolve_resources` enabled:
@@ -90,7 +90,7 @@ The parsed result would return like this with `resolve_resources` enabled:
         <activity android:name=".MySettingsActivity"
                   android:enabled="@bool/enableSettings" />
     </application>
-</manifest> 
+</manifest>
 ```
 
 Notice that the app icon resource did not resolve, and this is because (typically) there is no default resource for that value, only qualified resources for each density.  Similarly, the theme did not resolve, because this is a complex resource value that does not fit well into its place here in the XML.
@@ -137,7 +137,7 @@ all_keys = resources.get_all_keys
 all_strings = resources.get_all_strings
 ```
 You can also read the values of these resources.  Android resources are typed by the configuration that resource is defined for (screen size, density, API version, etc.) so multiple resources may exist for a given key.  ApkResources uses the custom structures `ResTypeConfig` and `ResTypeEntry` to store and return these values.
-```
+```ruby
 # Read resource values
 # Resource values are returned as a ResTypeEntry structure
 #  where the value is stored in the :data attribute
@@ -154,15 +154,15 @@ app_icons = resources.get_resource_value(0x7F020000)
 #  This is for an HDPI icon (min version 4 required for this attribute)
 #  Platform constants are defined in the ResConfiguration module.
 hdpi_config = ResTypeConfig.new(0, 0,
-		ResConfiguration::ACONFIGURATION_DENSITY_HIGH << 16, #HDPI
-		0, 0, 4, #Version > 4
-		0, 0)
+    ResConfiguration::ACONFIGURATION_DENSITY_HIGH << 16, #HDPI
+    0, 0, 4, #Version > 4
+    0, 0)
 hdpi_icon = app_icons[hdpi_config].data
 # hdpi_icon is now "res/drawable-hdpi/ic_launcher.png"
 
 # …or just print them all
 app_icons.values.each do |entry|
-	puts entry.data
+  puts entry.data
 end
 ```
 
