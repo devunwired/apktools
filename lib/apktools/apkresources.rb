@@ -541,17 +541,18 @@ class ApkResources
 						# Find the key in our strings index
 						key_name = stringpool_keystrings.values[entry_key]
 						# Parse the value into a string
-						data_value = nil
-						case type_name
-							when TYPE_STRING, TYPE_DRAWABLE
+						case entry_data_type
+							when 0x00
+								data_value = nil
+							when 0x03
 								data_value = get_resource_string(entry_data_type, entry_data)
-							when TYPE_COLOR
+							when TYPE_INT_COLOR_RGB4, TYPE_INT_COLOR_ARGB4, TYPE_INT_COLOR_RGB8, TYPE_INT_COLOR_ARGB8
 								data_value = get_resource_color(entry_data_type, entry_data)
-							when TYPE_DIMENSION
+							when 0x05
 								data_value = get_resource_dimension(entry_data_type, entry_data)
-							when TYPE_INTEGER
+							when TYPE_INT_DEC, TYPE_INT_HEX
 								data_value = get_resource_integer(entry_data_type, entry_data)
-							when TYPE_BOOLEAN
+							when TYPE_BOOL
 								data_value = get_resource_bool(entry_data_type, entry_data)
 							else
 								puts "Complex Resources not yet supported." if DEBUG
@@ -579,8 +580,7 @@ class ApkResources
 
 	# Obtain string value for resource id
 	def get_resource_string(entry_datatype, entry_data)
-		result = @stringpool_main.values[entry_data]
-		return result
+		@stringpool_main.values[entry_data]
 	end
 	
 	# Obtain boolean value for resource id
