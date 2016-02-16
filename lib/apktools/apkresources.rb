@@ -502,16 +502,20 @@ class ApkResources
 
         ## The config flags set for this type chunk
         ## TODO: Vary the size of the config structure based on size to accomodate for new flags
-        config_size = read_word(data, current+20) # Number of bytes in structure
-        type_config = ResTypeConfig.new( read_word(data, current+24),
-            read_word(data, current+28),
-            read_word(data, current+32),
-            read_word(data, current+36 ),
-            read_word(data, current+40),
-            read_word(data, current+44),
-            read_word(data, current+48),
-            read_word(data, current+52) )
+        config_start = current+20
+        config_size = read_word(data, config_start) # Number of bytes in structure
+        type_config = ResTypeConfig.new( read_word(data, config_start+4),
+            read_word(data, config_start+8),
+            read_word(data, config_start+12),
+            read_word(data, config_start+16 ),
+            read_word(data, config_start+20),
+            read_word(data, config_start+24),
+            read_word(data, config_start+28),
+            read_word(data, config_start+32) )
+        ## TODO: This config structure is outdated. Update to latest aapt specs.
 
+        ## The end of the config structure marks the offsets table
+        offset_table_start = config_start + config_size
         ## The remainder of the chunk is a list of the entry values for that type/configuration
         type_name = stringpool_typestrings.values[type_id - 1]
         if current_spec.types == nil
@@ -527,7 +531,7 @@ class ApkResources
           current_entry = current_spec.types.entries[i]
 
           ## Get the start of the type from the offsets table
-          index_offset = i * 4 + (current+56)
+          index_offset = i * 4 + offset_table_start
           start_offset = read_word(data, index_offset)
           if start_offset != OFFSET_NO_ENTRY
             ## Set the index_offset to the start of the current entry
