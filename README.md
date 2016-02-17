@@ -2,13 +2,13 @@ APK Resource Toolkit
 ====================
 [![Gem Version](https://badge.fury.io/rb/apktools.png)](http://badge.fury.io/rb/apktools)
 
-This repository contains the source code for the 'apktools' ruby gem, a set of utilities for parsing resource data out of Android APK files.
+This repository contains the source code for the `apktools` ruby gem, a set of utilities for parsing resource data out of Android APK files.
 
 This library only contains utility code to read XML and resource data from an APK.  It does not contain utilities to de-dex or otherwise decompile the sources.
 
 Its intended purpose is to assist web applications that need to read basic resource information from APKs that are uploaded in order to manage them (like a private app store).
 
-**This library is in early beta, feedback is greatly appreciated.  Please submit issues or pull requests for anything you'd like to see added or changed to make this library more useful.**
+**This library is not feature complete, feedback is greatly appreciated.  Please submit issues or pull requests for anything you'd like to see added or changed to make this library more useful.**
 
 Installing/Building
 ========
@@ -167,6 +167,53 @@ end
 ```
 
 **For more information on the capabilities of the library, take a look at the RDoc posted in the `doc/` directory of the repository.**
+
+Resource References
+-------------------
+`apktools` does not automatically follow references links found in resources. Instead, the library will return the resource id of the reference, allowing you to manually follow the reference as far as you like. The following example script recursively traces resource references until a value is found:
+```ruby
+require 'apktools/apkresources'
+
+## Resolve a resource value, tracing references when necessary
+def resolve_resource(resources, res_id)
+  res_value = resources.get_default_resource_value(res_id)
+  if res_value == nil
+    return nil
+  elsif res_value.data_type == ApkResources::TYPE_REFERENCE
+    #This is a reference, trace it down
+    return resolve_resource(resources, res_value.data)
+  else
+    return [res_value.key,res_value.data]
+  end
+end
+
+# Read resource information out of the given APK
+# Returns the initial resource key, and final resource key/value pair
+# The above will be different if the initial resource contains a reference
+
+if ARGV.length != 2
+  puts "usage: ref_test <APKFile> <ResId>"
+  exit(1)
+end
+
+apk_file = ARGV[0]
+res_id = ARGV[1]
+
+# Load the XML data
+# Initialize with an APK file
+resources = ApkResources.new(apk_file)
+
+# Get Resource key
+res_key = resources.get_resource_key(res_id)
+
+# Get Resource value (ResTypeEntry struct)
+res_value = resolve_resource(resources, res_id)
+if res_value == nil
+  puts "No resource found for #{res_id}"
+else
+  puts [res_key,res_value]
+end
+```
 
 Utilities
 =========
