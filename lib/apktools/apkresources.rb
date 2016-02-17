@@ -240,6 +240,7 @@ class ApkResources
     entry = res_spec.types.entries[res_index]
     if entry == nil
       # There is no entry in our table for this resource
+      puts "Could not find #{res_spec.types.id} ResType chunk" if DEBUG
       return nil
     end
 
@@ -315,33 +316,46 @@ class ApkResources
   private # Private Helper Methods
 
   # Type Constants
-  TYPE_ARRAY = "array" # :nodoc:
-  TYPE_ATTRIBUTE = "attr" # :nodoc:
-  TYPE_BOOLEAN = "bool" # :nodoc:
-  TYPE_COLOR = "color" # :nodoc:
-  TYPE_DIMENSION = "dimen" # :nodoc:
-  TYPE_DRAWABLE = "drawable" # :nodoc:
-  TYPE_FRACTION = "fraction" # :nodoc:
-  TYPE_INTEGER = "integer" # :nodoc:
-  TYPE_LAYOUT = "layout" # :nodoc:
-  TYPE_PLURALS = "plurals" # :nodoc:
-  TYPE_STRING = "string" # :nodoc:
-  TYPE_STYLE = "style" # :nodoc:
+  TYPENAME_ARRAY = "array" # :nodoc:
+  TYPENAME_ATTRIBUTE = "attr" # :nodoc:
+  TYPENAME_BOOLEAN = "bool" # :nodoc:
+  TYPENAME_COLOR = "color" # :nodoc:
+  TYPENAME_DIMENSION = "dimen" # :nodoc:
+  TYPENAME_DRAWABLE = "drawable" # :nodoc:
+  TYPENAME_FRACTION = "fraction" # :nodoc:
+  TYPENAME_INTEGER = "integer" # :nodoc:
+  TYPENAME_LAYOUT = "layout" # :nodoc:
+  TYPENAME_PLURALS = "plurals" # :nodoc:
+  TYPENAME_STRING = "string" # :nodoc:
+  TYPENAME_STYLE = "style" # :nodoc:
 
-  # Data Type Constants
+  # Data Type Constants (mirrors ResourceTypes.h)
+  TYPE_NULL = 0x0 # :nodoc:
+  TYPE_REFERENCE = 0x1 # :nodoc:
+  TYPE_ATTRIBUTE = 0x2 # :nodoc:
+  TYPE_STRING = 0x3 # :nodoc:
+  TYPE_FLOAT = 0x4 # :nodoc:
+  TYPE_DIMENSION = 0x5 # :nodoc:
+  TYPE_FRACTION = 0x6 # :nodoc:
+  TYPE_DYNAMIC_DIMEN = 0x7 # :nodoc:
   TYPE_INT_DEC = 0x10 # :nodoc:
   TYPE_INT_HEX = 0x11 # :nodoc:
   TYPE_BOOL = 0x12 # :nodoc:
-  TYPE_INT_COLOR_RGB4 = 0x1F # :nodoc:
-  TYPE_INT_COLOR_ARGB4 = 0x1E # :nodoc:
-  TYPE_INT_COLOR_RGB8 = 0x1D # :nodoc:
+
   TYPE_INT_COLOR_ARGB8 = 0x1C # :nodoc:
+  TYPE_INT_COLOR_RGB8 = 0x1D # :nodoc:
+  TYPE_INT_COLOR_ARGB4 = 0x1E # :nodoc:
+  TYPE_INT_COLOR_RGB4 = 0x1F # :nodoc:
+
   COMPLEX_UNIT_PX = 0x0 # :nodoc:
   COMPLEX_UNIT_DIP = 0x1 # :nodoc:
   COMPLEX_UNIT_SP = 0x2 # :nodoc:
   COMPLEX_UNIT_PT = 0x3 # :nodoc:
   COMPLEX_UNIT_IN = 0x4 # :nodoc:
   COMPLEX_UNIT_MM = 0x5 # :nodoc:
+
+  COMPLEX_UNIT_FRACTION = 0x0 # :nodoc:
+  COMPLEX_UNIT_FRACTION_PARENT = 0x1 # :nodoc:
 
   # Data Constants
   TYPE_BOOL_TRUE = 0xFFFFFFFF # :nodoc:
@@ -546,20 +560,27 @@ class ApkResources
             key_name = stringpool_keystrings.values[entry_key]
             # Parse the value into a string
             case entry_data_type
-							when 0x00
-								data_value = nil
-							when 0x03
+              when TYPE_NULL
+                data_value = nil
+              when TYPE_REFERENCE
+                ## TODO: Mark these here, and resolve after package is parsed
+                data_value = res_id_to_s(entry_data)
+              when TYPE_STRING
                 data_value = get_resource_string(entry_data_type, entry_data)
-              when TYPE_INT_COLOR_RGB4, TYPE_INT_COLOR_ARGB4, TYPE_INT_COLOR_RGB8, TYPE_INT_COLOR_ARGB8
+              when TYPE_INT_COLOR_ARGB8..TYPE_INT_COLOR_RGB4
                 data_value = get_resource_color(entry_data_type, entry_data)
-              when 0x05
+              when TYPE_DIMENSION
                 data_value = get_resource_dimension(entry_data_type, entry_data)
               when TYPE_INT_DEC, TYPE_INT_HEX
                 data_value = get_resource_integer(entry_data_type, entry_data)
               when TYPE_BOOL
                 data_value = get_resource_bool(entry_data_type, entry_data)
+              when TYPE_FLOAT
+                data_value = get_resource_float(entry_data_type, entry_data)
+              when TYPE_FRACTION
+                data_value = get_resource_fraction(entry_data_type, entry_data)
               else
-                puts "Complex Resources not yet supported." if DEBUG
+                puts "Complex Resource (%s,%d) not yet supported." % [type_name,entry_data_type] if DEBUG
                 data_value = entry_data.to_s
             end
             current_entry[type_config] = ResTypeEntry.new(entry_flags, key_name, entry_data_type, data_value)
@@ -624,9 +645,16 @@ class ApkResources
     end
   end
 
+
+  # Obtain a float value for resource id
+  def get_resource_float(entry_data_type, entry_data)
+    result = [entry_data].pack('I').unpack('F')
+    return result[0].to_s
+  end
+
   # Obtain dimension value for resource id
   def get_resource_dimension(entry_datatype, entry_data)
-    unit_type = (entry_data & 0xFF)
+    unit_type = (entry_data & 0xF)
     case unit_type
     when COMPLEX_UNIT_PX
       unit_name = "px"
@@ -644,6 +672,33 @@ class ApkResources
       unit_name = ""
     end
 
-    return ((entry_data >> 8) & 0xFFFFFF).to_s + unit_name
+    return complex_to_float(entry_data).to_s + unit_name
+    #return ((entry_data >> 8) & 0xFFFFFF).to_s + unit_name
+  end
+
+  # Obtain a fraction value for resource id
+  def get_resource_fraction(entry_data_type, entry_data)
+    unit_type = (entry_data & 0xF)
+    case unit_type
+    when COMPLEX_UNIT_FRACTION
+      unit_name = "%"
+    when COMPLEX_UNIT_FRACTION_PARENT
+      unit_name = "%p"
+    else
+      unit_name = ""
+    end
+
+    # Return float as a percentage
+    return (complex_to_float(entry_data) * 100).to_s + unit_name
+  end
+
+  def complex_to_float(complex)
+    mantissa_mult = 1.0 / (1 << 8)
+    multipliers = [1.0*mantissa_mult, 1.0/(1<<7)*mantissa_mult, 1.0/(1<<15)*mantissa_mult, 1.0/(1<<23)*mantissa_mult]
+
+    mantissa = complex & 0xFFFFFF00
+    radix = (complex >> 4) & 0x3
+
+    return (mantissa * multipliers[radix]).to_f.round(4)
   end
 end
