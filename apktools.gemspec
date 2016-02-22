@@ -18,13 +18,13 @@
 
 Gem::Specification.new do |s|
   s.name        = 'apktools'
-  s.version     = '0.7.0'
-  s.date        = '2016-02-17'
+  s.version     = '0.7.1'
+  s.date        = '2016-02-22'
   s.summary     = 'APKTools'
   s.description = 'Library to assist reading resource data out of Android APKs'
   s.authors     = ['Dave Smith']
   s.email       = 'smith@wiresareobsolete.com'
-  s.files       = ["lib/apktools/apkresources.rb", "lib/apktools/apkxml.rb", "lib/apktools/resconfiguration.rb"]
+  s.files       = %w(lib/apktools/apkresources.rb lib/apktools/apkxml.rb lib/apktools/resconfiguration.rb)
   s.homepage    = 'http://github.com/devunwired/apktools'
   s.license     = 'MIT'
 
