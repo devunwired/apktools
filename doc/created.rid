@@ -1,6 +1,4 @@
-Tue, 17 Dec 2013 23:02:22 -0700
-./bin/get_app_version.rb	Sun, 12 Aug 2012 17:31:44 -0600
-./bin/read_manifest.rb	Tue, 17 Dec 2013 22:59:00 -0700
-./lib/apktools/apkresources.rb	Tue, 17 Dec 2013 22:59:17 -0700
-./lib/apktools/apkxml.rb	Tue, 17 Dec 2013 22:59:07 -0700
-./lib/apktools/resconfiguration.rb	Thu, 09 Aug 2012 22:39:23 -0600
+Mon, 22 Feb 2016 21:16:45 -0700
+lib/apktools/apkresources.rb	Mon, 22 Feb 2016 21:09:38 -0700
+lib/apktools/apkxml.rb	Mon, 22 Feb 2016 21:09:38 -0700
+lib/apktools/resconfiguration.rb	Thu, 09 Aug 2012 22:39:23 -0600
