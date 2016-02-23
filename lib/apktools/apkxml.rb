@@ -136,7 +136,7 @@ class ApkXml
     # Get the XML from the APK file
     Zip::File.foreach(@current_apk) do |f|
       if f.name.match(xml_file)
-      data = f.get_input_stream.read
+        data = f.get_input_stream.read.force_encoding('BINARY')
       end
     end
 
