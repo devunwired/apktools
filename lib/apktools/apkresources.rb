@@ -131,9 +131,10 @@ class ApkResources
   # Create a new ApkResources instance from the specified +apk_file+
   #
   # This opens and parses the contents of the APK's resources.arsc file.
-
   def initialize(apk_file)
     data = nil
+    Zip.warn_invalid_date = false
+
     # Get resources.arsc from the APK file
     Zip::File.foreach(apk_file) do |f|
       if f.name.match(/resources.arsc/)
