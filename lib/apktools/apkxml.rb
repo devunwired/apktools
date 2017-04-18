@@ -114,6 +114,7 @@ class ApkXml
   # This opens and parses the contents of the APK's resources.arsc file.
   def initialize(apk_file)
     @current_apk = apk_file
+    Zip.warn_invalid_date = false
     @apk_resources = ApkResources.new(apk_file)
   end #initialize
 
@@ -129,16 +130,17 @@ class ApkXml
   def parse_xml(xml_file, pretty = false, resolve_resources = false)
     # Reset variables
     @xml_elements = Array.new()
-    xml_output = ""
+    xml_output = ''
     indent = 0
     data = nil
 
-    # Get the XML from the APK file
+    Zip.warn_invalid_date = false
     Zip::File.foreach(@current_apk) do |f|
       if f.name.match(xml_file)
         data = f.get_input_stream.read.force_encoding('BINARY')
       end
     end
+
 
     # Parse the Header Chunk
     header = ChunkHeader.new( read_short(data, HEADER_START),
