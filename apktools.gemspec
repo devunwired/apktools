@@ -30,5 +30,5 @@ Gem::Specification.new do |s|
 
   s.executables << 'get_app_version.rb'
   s.executables << 'read_manifest.rb'
-  s.add_runtime_dependency 'rubyzip', '1.3.0'
+  s.add_runtime_dependency 'rubyzip', '~> 1.3.0'
 end
