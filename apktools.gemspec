@@ -18,8 +18,8 @@
 
 Gem::Specification.new do |s|
   s.name        = 'apktools'
-  s.version     = '0.7.3'
-  s.date        = '2019-09-27'
+  s.version     = '0.7.4'
+  s.date        = '2020-07-02'
   s.summary     = 'APKTools'
   s.description = 'Library to assist reading resource data out of Android APKs'
   s.authors     = ['Dave Smith']
@@ -30,5 +30,5 @@ Gem::Specification.new do |s|
 
   s.executables << 'get_app_version.rb'
   s.executables << 'read_manifest.rb'
-  s.add_runtime_dependency 'rubyzip', '~> 1.3'
+  s.add_runtime_dependency 'rubyzip', '~> 2.0'
 end

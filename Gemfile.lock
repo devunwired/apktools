@@ -1,0 +1,19 @@
+PATH
+  remote: .
+  specs:
+    apktools (0.7.4)
+      rubyzip (~> 2.0)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    rubyzip (2.3.0)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  apktools!
+
+BUNDLED WITH
+   2.1.4
