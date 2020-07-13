@@ -8,7 +8,7 @@ This library only contains utility code to read XML and resource data from an AP
 
 Its intended purpose is to assist web applications that need to read basic resource information from APKs that are uploaded in order to manage them (like a private app store).
 
-**This library is not feature complete, feedback is greatly appreciated.  Please submit issues or pull requests for anything you'd like to see added or changed to make this library more useful.**
+**This library is not actively maintained. Pull requests are welcome for fixes or features, but issues filed are unlikely to be addressed.**
 
 Installing/Building
 ========
