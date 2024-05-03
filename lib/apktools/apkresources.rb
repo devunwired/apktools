@@ -239,7 +239,7 @@ class ApkResources
     end
 
     entry = res_spec.types.entries[res_index]
-    if entry == nil
+    if entry == nil || entry.values.empty?
       # There is no entry in our table for this resource
       puts "Could not find #{res_spec.types.id} ResType chunk" if DEBUG
       return nil
